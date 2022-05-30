@@ -29,6 +29,7 @@ func NewSyncToRemoteCommand() *cobra.Command {
 	command.Flags().StringVarP(&app.destPath, "dst", "d", "/", "Target path")
 	command.Flags().StringSliceVarP(&app.remoteParams, "param", "p", []string{}, "List of key=value settings for remote e.g. -p 'type=s3' -p 'provider=Minio' -p 'access_key_id=AKIAIOSFODNN7EXAMPLE'")
 	command.Flags().StringSliceVarP(&app.encryptParams, "enc-param", "e", []string{}, "List of key=value settings for remote e.g. -p 'remote=remote:testbucket' -p 'password=xxxxxxxx'")
+	command.Flags().StringVarP(&app.SchedulerExpression, "schedule", "", "", "Set to a valid crontab-like expression to schedule synchronization periodically")
 
 	return command
 }

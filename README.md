@@ -8,7 +8,7 @@ Docker container and Kubernetes operator for periodically synchronizing volumes 
 - [x] Rclone configuration using environment variables
 - [x] End-To-End encryption support
 - [ ] Periodical synchronization with built-in cron-like scheduler
-- [ ] `volume-syncing-operator sync-to-remote` command to synchronize local files to remote
+- [x] `volume-syncing-operator sync-to-remote` command to synchronize local files to remote
 - [ ] `volume-syncing-operator restore` command to sync files back from remote to local
 - [ ] Support for Kubernetes: **initContainer** to `restore` files, and **side-car** to back up files to remote
 
@@ -56,4 +56,14 @@ acl = private
 
 ```bash
 rclone sync ./ remote:/testbucket/some-directory
+```
+
+Scheduling periodically
+-----------------------
+
+`volume-syncing-operator` has built-in crontab-like scheduler to optionally enable periodical syncing.
+
+```
+volume-syncing-operator --schedule '@every 1m'    # ...
+volume-syncing-operator --schedule '0 30 * * * *' # ...
 ```
