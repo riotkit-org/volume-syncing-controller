@@ -20,7 +20,7 @@ jobs:
               run: "make build"
 
             - name: Test
-              run: "make coverage"
+              run: "make coverage test"
 
             - name: SonarCloud Scan
               uses: sonarsource/sonarcloud-github-action@master
