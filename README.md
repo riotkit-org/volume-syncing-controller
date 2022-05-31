@@ -11,6 +11,7 @@ Docker container and Kubernetes operator for periodically synchronizing volumes 
 - [x] `volume-syncing-operator sync-to-remote` command to synchronize local files to remote
 - [x] `volume-syncing-operator remote-to-local-sync` command to sync files back from remote to local
 - [ ] Support for Kubernetes: **initContainer** to `restore` files, and **side-car** to back up files to remote
+- [x] Extra security layer preventing from accidental file deletion in comparison to plain `rclone` or `rsync` usage :100:
 
 Runtime compatibility
 ---------------------
@@ -64,8 +65,8 @@ rclone sync ./ remote:/testbucket/some-directory
 
 ### For more examples see our [Makefile](./examples.mk) full of examples that could be run in context of this repository
 
-Scheduling periodically
------------------------
+:watch: Scheduling periodically
+-------------------------------
 
 `volume-syncing-operator` has built-in crontab-like scheduler to optionally enable periodical syncing.
 
@@ -74,23 +75,23 @@ volume-syncing-operator --schedule '@every 1m'    # ...
 volume-syncing-operator --schedule '0 30 * * * *' # ...
 ```
 
-Safety valves
--------------
+:black_circle: Safety valves
+----------------------------
 
 There are various "safety valves" that in default configuration would try to prevent misconfigured run from deleting your data.
 
 ### sync-to-remote
 
-| Safety rule                                                                               |
-|-------------------------------------------------------------------------------------------|
-| Local directory cannot be empty (it would mean deleting all files from remote directory)  |
+| :black_circle: Safety rule                                                               |
+|------------------------------------------------------------------------------------------|
+| Local directory cannot be empty (it would mean deleting all files from remote directory) |
 
 
 ### remote-to-local-sync
 
 Validation of those rules can be intentionally skipped using commandline switch `--force-delete-local-dir`
 
-| Safety rule                                                                                                                        |
+| :black_circle: Safety rule                                                                                                         |
 |------------------------------------------------------------------------------------------------------------------------------------|
 | Remote directory cannot be empty (it would mean deleting all local files)                                                          |
 | `/usr/bin`, `/bin`, `/`, `/home`, `/usr/lib` cannot be picked as synchronization root due to risk of erasing your operating system |
