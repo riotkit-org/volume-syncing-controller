@@ -16,41 +16,87 @@ type Runner struct {
 	RemoteParams []string
 
 	// configuration for the encryption (if configured)
-	Encrypt       bool
-	EncryptParams []string
+	Encryption       bool
+	EncryptionParams []string
+
+	Debug bool
 }
 
 // SyncToRemote invokes a "rclone sync" to remote destination
 func (r *Runner) SyncToRemote(localPath string, targetPath string) error {
-	return r.sync(localPath, r.getRemoteName()+":/"+strings.TrimLeft(targetPath, "/"))
+	return r.performFilesCopying("sync", localPath, r.getRemoteName()+":/"+strings.TrimLeft(targetPath, "/"))
 }
 
-// sync invokes a "rclone sync" command
-func (r *Runner) sync(from string, to string) error {
+// SyncFromRemote invokes a "rclone sync" to bring files back from remote storage
+func (r *Runner) SyncFromRemote(remotePath string, localTargetPath string) error {
+	return r.performFilesCopying("sync", r.getRemoteName()+":/"+strings.TrimLeft(remotePath, "/"), localTargetPath)
+}
+
+// CopyFromRemote invokes a "rclone copy" to bring files back from remote storage
+func (r *Runner) CopyFromRemote(remotePath string, localTargetPath string) error {
+	return r.performFilesCopying("copy", r.getRemoteName()+":/"+strings.TrimLeft(remotePath, "/"), localTargetPath)
+}
+
+// performFilesCopying invokes a "rclone" command
+func (r *Runner) performFilesCopying(action string, from string, to string) error {
 	if r.RenderConfig {
 		configErr := r.createConfig()
 		defer r.cleanUpConfig()
 
 		if configErr != nil {
-			return errors.Wrap(configErr, "Cannot sync")
+			return errors.Wrap(configErr, "Cannot sync/copy")
 		}
 	}
 
-	proc := exec.Command("rclone", "sync", "-vv", "--create-empty-src-dirs", from, to)
+	params := []string{action, "--create-empty-src-dirs", from, to}
+	if r.Debug {
+		params = append(params, "-vv")
+	}
+	return r.rclone(params...)
+}
+
+// IsDirEmpty checks if remote directory is empty
+func (r *Runner) IsDirEmpty(path string) (bool, error) {
+	if r.RenderConfig {
+		configErr := r.createConfig()
+		defer r.cleanUpConfig()
+
+		if configErr != nil {
+			return true, errors.Wrap(configErr, "Cannot sync/copy")
+		}
+	}
+
+	proc := exec.Command("rclone", "ls", r.getRemoteName()+":/"+strings.TrimLeft(path, "/"))
+	proc.Stderr = os.Stderr
+	proc.Stdin = os.Stdin
+	proc.Env = append(os.Environ(), "RCLONE_CONFIG="+r.ConfigPath)
+
+	out, err := proc.Output()
+	if err != nil {
+		return true, errors.Wrap(err, "Cannot run rclone")
+	}
+
+	return strings.Trim(string(out), " \n") == "", nil
+}
+
+func (r *Runner) rclone(args ...string) error {
+	logrus.Debug("rclone", args)
+
+	proc := exec.Command("rclone", args...)
 	proc.Stdout = os.Stdout
 	proc.Stderr = os.Stderr
 	proc.Stdin = os.Stdin
 	proc.Env = append(os.Environ(), "RCLONE_CONFIG="+r.ConfigPath)
 
 	if err := proc.Run(); err != nil {
-		return errors.Wrap(err, "Cannot run 'rclone sync'")
+		return errors.Wrap(err, "Cannot run rclone")
 	}
 	return nil
 }
 
 // getRemoteName decides if we are using encryption
 func (r *Runner) getRemoteName() string {
-	if r.Encrypt {
+	if r.Encryption {
 		return "remote_encrypted"
 	}
 	return "remote"
@@ -69,10 +115,10 @@ func (r *Runner) createConfig() error {
 		ini += param + "\n"
 	}
 
-	if r.Encrypt {
+	if r.Encryption {
 		ini += "[remote_encrypted]\ntype=crypt\n"
 
-		for _, param := range r.EncryptParams {
+		for _, param := range r.EncryptionParams {
 			parts := strings.Split(param, "=")
 			if len(parts) < 2 {
 				return errors.Errorf("Missing value in '%v'", param)

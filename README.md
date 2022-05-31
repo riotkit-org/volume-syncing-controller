@@ -9,7 +9,7 @@ Docker container and Kubernetes operator for periodically synchronizing volumes 
 - [x] End-To-End encryption support
 - [x] Periodical synchronization with built-in cron-like scheduler
 - [x] `volume-syncing-operator sync-to-remote` command to synchronize local files to remote
-- [ ] `volume-syncing-operator restore` command to sync files back from remote to local
+- [x] `volume-syncing-operator remote-to-local-sync` command to sync files back from remote to local
 - [ ] Support for Kubernetes: **initContainer** to `restore` files, and **side-car** to back up files to remote
 
 Runtime compatibility
@@ -37,7 +37,11 @@ export REMOTE_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 export REMOTE_ENDPOINT=http://localhost:9000
 export REMOTE_ACL=private
 
+# synchronize to remote storage
 volume-syncing-operator sync-to-remote -s ./ -d testbucket/some-directory
+
+# synchronize back from remote storage to local directory
+volume-syncing-operator remote-to-local-sync -v -s testbucket -d ./.build/testing-restore
 ```
 
 **Will translate into configuration:**
@@ -67,3 +71,26 @@ Scheduling periodically
 volume-syncing-operator --schedule '@every 1m'    # ...
 volume-syncing-operator --schedule '0 30 * * * *' # ...
 ```
+
+Safety valves
+-------------
+
+There are various "safety valves" that in default configuration would try to prevent misconfigured run from deleting your data.
+
+### sync-to-remote
+
+| Safety rule                                                                               |
+|-------------------------------------------------------------------------------------------|
+| Local directory cannot be empty (it would mean deleting all files from remote directory)  |
+
+
+### remote-to-local-sync
+
+Validation of those rules can be intentionally skipped using commandline switch `--force-delete-local-dir`
+
+| Safety rule                                                                                                                        |
+|------------------------------------------------------------------------------------------------------------------------------------|
+| Remote directory cannot be empty (it would mean deleting all local files)                                                          |
+| `/usr/bin`, `/bin`, `/`, `/home`, `/usr/lib` cannot be picked as synchronization root due to risk of erasing your operating system |
+| Local target directory cannot be owned by root                                                                                     |
+| Local target directory must be owned by same user id as the current process runs on                                                |
