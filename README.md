@@ -12,6 +12,7 @@ Docker container and Kubernetes operator for periodically synchronizing volumes 
 - [x] `volume-syncing-operator remote-to-local-sync` command to sync files back from remote to local
 - [ ] Support for Kubernetes: **initContainer** to `restore` files, and **side-car** to back up files to remote
 - [x] Extra security layer preventing from accidental file deletion in comparison to plain `rclone` or `rsync` usage :100:
+- [x] Non-root container
 
 Runtime compatibility
 ---------------------
