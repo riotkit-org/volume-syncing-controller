@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"github.com/riotkit-org/volume-syncer/cmd/remote_to_local"
-	syncToRemote "github.com/riotkit-org/volume-syncer/cmd/sync-to-remote"
+	"github.com/riotkit-org/volume-syncing-operator/cmd/remote_to_local"
+	syncToRemote "github.com/riotkit-org/volume-syncing-operator/cmd/sync-to-remote"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )

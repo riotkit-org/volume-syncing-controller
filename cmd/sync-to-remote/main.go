@@ -1,7 +1,7 @@
 package sync_to_remote
 
 import (
-	"github.com/riotkit-org/volume-syncer/pkg/helpers"
+	"github.com/riotkit-org/volume-syncing-operator/pkg/helpers"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
