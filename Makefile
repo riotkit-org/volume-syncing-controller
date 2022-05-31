@@ -10,6 +10,11 @@ build:
 build_docker:
 	docker build . -t volume-syncer
 
+.PHONY: coverage
+coverage:
+	go test -v ./... -covermode=count -coverprofile=coverage.out
+
+
 .PHONY: minio
 minio:
 	docker rm -f minio1 || true
