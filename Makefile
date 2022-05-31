@@ -4,7 +4,7 @@ include examples.mk
 build:
 	@echo "\n🔧  Building Go binaries..."
 	mkdir -p .build
-	CGO_ENABLED=0 GO111MODULE=on GOOS=linux GOARCH=amd64 go build -o .build/volume-syncer .
+	CGO_ENABLED=0 GO111MODULE=on GOOS=linux GOARCH=amd64 go build -o .build/volume-syncing-operator .
 
 .PHONY: build_docker
 build_docker:

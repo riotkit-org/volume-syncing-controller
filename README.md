@@ -62,6 +62,8 @@ acl = private
 rclone sync ./ remote:/testbucket/some-directory
 ```
 
+### For more examples see our [Makefile](./examples.mk) full of examples that could be run in context of this repository
+
 Scheduling periodically
 -----------------------
 

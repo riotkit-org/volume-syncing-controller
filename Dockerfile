@@ -7,11 +7,16 @@ FROM rclone/rclone:1.58.1 as rcloneSrc
 # ================
 # Build entrypoint
 # ================
-FROM golang:1.18.2-alpine AS entrypointBuilder
+FROM golang:1.18.2-alpine AS operatorBuilder
+
+ADD ./ /build
+WORKDIR /build
+
+RUN apk add make
 RUN make build
-RUN mkdir -p /etc/volume-syncer /mnt \
-    && chown 65312:65312 /etc/volume-syncer /mnt \
-    && chmod 777 /etc/volume-syncer /mnt
+RUN mkdir -p /etc/volume-syncing-operator /mnt \
+    && chown 65312:65312 /etc/volume-syncing-operator /mnt \
+    && chmod 777 /etc/volume-syncing-operator /mnt
 
 
 # =========================
@@ -19,10 +24,11 @@ RUN mkdir -p /etc/volume-syncer /mnt \
 # =========================
 FROM scratch
 COPY --from=rcloneSrc /usr/local/bin/rclone /usr/bin/rclone
-COPY --from=entrypointBuilder /entrypoint /usr/bin/entrypoint
-COPY --from=entrypointBuilder /etc/volume-syncer /etc/volume-syncer
+COPY --from=operatorBuilder /build/.build/volume-syncing-operator /usr/bin/volume-syncing-operator
+COPY --from=operatorBuilder /etc/volume-syncing-operator /etc/volume-syncing-operator
 
 ENV REMOTE_TYPE="s3"
+ENV PATH="/usr/bin"
 
 # Environment variables are DYNAMIC, depending on desired rclone configuration
 # example:
@@ -36,4 +42,4 @@ ENV REMOTE_TYPE="s3"
 
 USER 65312
 WORKDIR /mnt
-ENTRYPOINT ["/usr/bin/entrypoint"]
+ENTRYPOINT ["/usr/bin/volume-syncing-operator"]
