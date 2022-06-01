@@ -98,3 +98,39 @@ Validation of those rules can be intentionally skipped using commandline switch 
 | `/usr/bin`, `/bin`, `/`, `/home`, `/usr/lib` cannot be picked as synchronization root due to risk of erasing your operating system |
 | Local target directory cannot be owned by root                                                                                     |
 | Local target directory must be owned by same user id as the current process runs on                                                |
+
+
+Kubernetes example
+------------------
+
+Operator have to be installed using Helm first. It will react for every Pod labelled with `riotkit.org/volume-syncing-operator: true` and matching CRD of `PodFilesystemSync` kind.
+
+The `riotkit.org/volume-syncing-operator: true` is there for performance and cluster safety by limiting the scope of Admission Webhook.
+
+```yaml
+---
+apiVersion: riotkit.org/v1alpha1
+kind: PodFilesystemSync
+metadata:
+    name: cloud-press
+spec:
+    podSelector:
+        my-pod-label: test
+
+    localPath: /var/www/riotkit/wp-content
+    remotePath: /example-org-bucket
+    schedule: "@every 5m"
+    env:
+        REMOTE_TYPE: s3
+        REMOTE_PROVIDER: Minio
+        REMOTE_ENDPOINT: http://localhost:9000
+        REMOTE_ACL: private
+
+        # best practice is to move sensitive information into `kind: Secret`
+        # and reference that secret in `envFromSecret`
+        # to keep your secret in GIT you can try e.g. SealedSecrets or ExternalSecrets
+        #REMOTE_ACCESS_KEY_ID: ...
+        #REMOTE_SECRET_ACCESS_KEY: ...
+    envFromSecret:
+        ref: cloud-press-secret-envs
+```
