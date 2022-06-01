@@ -6,15 +6,18 @@ jobs:
     test-and-build:
         runs-on: ubuntu-20.04
         steps:
-            - name: Checkout
-              uses: actions/checkout@v3
-              with:
-                  fetch-depth: 0
-
             - name: Set up Go
               uses: actions/setup-go@v3
               with:
                   go-version: 1.18
+
+            - name: Setup GenGo
+              run: go get -u k8s.io/code-generator/cmd/deepcopy-gen
+
+            - name: Checkout
+              uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
 
             - name: Build
               run: "make build"
