@@ -15,7 +15,10 @@ crd-manifests: $(CONTROLLER_GEN)
 	git add crds helm/volume-syncing-operator/templates/
 
 .PHONY: build
-build: gen-api crd-manifests
+build: gen-api build-binary crd-manifests
+
+.PHONY: build-binary
+build-binary:
 	@echo "\n🔧  Building Go binaries..."
 	mkdir -p .build
 	CGO_ENABLED=0 GO111MODULE=on GOOS=linux GOARCH=amd64 go build -o .build/volume-syncing-operator .
