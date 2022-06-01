@@ -7,13 +7,8 @@ FROM rclone/rclone:1.58.1 as rcloneSrc
 # ================
 # Build entrypoint
 # ================
-FROM golang:1.18.2-alpine AS operatorBuilder
+FROM alpine:3.16 AS workspaceBuilder
 
-ADD ./ /build
-WORKDIR /build
-
-RUN apk add make
-RUN make build
 RUN mkdir -p /etc/volume-syncing-operator /mnt \
     && chown 65312:65312 /etc/volume-syncing-operator /mnt \
     && chmod 777 /etc/volume-syncing-operator /mnt
@@ -23,9 +18,13 @@ RUN mkdir -p /etc/volume-syncing-operator /mnt \
 # Create a distroless image
 # =========================
 FROM scratch
+
+# copy a versioned artifact from official released image
 COPY --from=rcloneSrc /usr/local/bin/rclone /usr/bin/rclone
-COPY --from=operatorBuilder /build/.build/volume-syncing-operator /usr/bin/volume-syncing-operator
-COPY --from=operatorBuilder /etc/volume-syncing-operator /etc/volume-syncing-operator
+# copy already built artifact by CI
+COPY ./.build/volume-syncing-operator /usr/bin/volume-syncing-operator
+# copy a directory with prepared permissions
+COPY --from=workspaceBuilder /etc/volume-syncing-operator /etc/volume-syncing-operator
 
 ENV REMOTE_TYPE="s3"
 ENV PATH="/usr/bin"

@@ -20,8 +20,8 @@ build: gen-api crd-manifests
 	mkdir -p .build
 	CGO_ENABLED=0 GO111MODULE=on GOOS=linux GOARCH=amd64 go build -o .build/volume-syncing-operator .
 
-.PHONY: build_docker
-build_docker:
+.PHONY: build-docker
+build-docker:
 	docker build . -t volume-syncer
 
 .PHONY: coverage
