@@ -27,6 +27,11 @@ build-binary:
 build-docker:
 	docker build . -t volume-syncer
 
+.PHONY: helm
+helm:
+	cp README.md helm/volume-syncing-operator/
+	cd helm/volume-syncing-operator/ && helm lint ./
+
 .PHONY: coverage
 coverage:
 	go test -v ./... -covermode=count -coverprofile=coverage.out

@@ -1,0 +1,94 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: {{ include "volume-syncing-operator.fullname" . }}
+    labels:
+        {{- include "volume-syncing-operator.labels" . | nindent 8 }}
+spec:
+    replicas: {{ .Values.replicas }}
+    selector:
+        matchLabels:
+            {{- include "volume-syncing-operator.selectorLabels" . | nindent 10 }}
+    template:
+        metadata:
+          {{- with .Values.podAnnotations }}
+            annotations:
+              {{- toYaml . | nindent 16 }}
+          {{- end }}
+            labels:
+              {{- with .Values.podLabels }}
+              {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- include "volume-syncing-operator.selectorLabels" . | nindent 16 }}
+              {{- if eq (.Values.image.tag | default .Chart.AppVersion) "latest" | or (eq (.Values.image.tag | default .Chart.AppVersion) "snapshot") }}
+                  refreshImageTag: "{{- randAlphaNum 24 | nospace -}}"
+              {{- end }}
+        spec:
+            terminationGracePeriodSeconds: 5
+            serviceAccountName: {{ .Values.serviceAccount.name }}
+            {{- with .Values.podSecurityContext }}
+            securityContext:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+            {{- with .Values.nodeSelector }}
+            nodeSelector:
+                {{- toYaml . | nindent 14 }}
+            {{- end }}
+            {{- with .Values.affinity }}
+            affinity:
+                {{- toYaml . | nindent 14 }}
+            {{- end }}
+            {{- with .Values.tolerations }}
+            tolerations:
+                {{- toYaml . | nindent 14 }}
+            {{- end }}
+            containers:
+                - name: webhook-handler
+                  image: {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+                  imagePullPolicy: Always
+                  args: ["serve", "--tls"]
+                  env:
+                      {{- with .Values.env }}
+                      {{- range $key, $value := . }}
+                      - name: {{ $key }}
+                        value: "{{ $value }}"
+                      {{- end }}
+                      {{- end }}
+                  volumeMounts:
+                      - name: tls
+                        mountPath: "/etc/admission-webhook/tls"
+                        readOnly: true
+                  ports:
+                      - name: http
+                        containerPort: 8080
+                        protocol: TCP
+                      - name: https
+                        containerPort: 4443
+                        protocol: TCP
+                  {{- if .Values.health.liveness.enabled }}
+                  livenessProbe:
+                      {{- with .Values.health.liveness.attributes}}
+                      {{- toYaml . | nindent 22 }}
+                      {{- end}}
+                      httpGet:
+                          path: /health
+                          scheme: HTTPS
+                          port: https
+                  {{- end }}
+                  {{- if .Values.health.readiness.enabled }}
+                  readinessProbe:
+                      {{- with .Values.health.readiness.attributes }}
+                      {{- toYaml . | nindent 22 }}
+                      {{- end }}
+                      httpGet:
+                          path: /health
+                          scheme: HTTPS
+                          port: https
+                  {{- end }}
+                  resources:
+                      {{- toYaml .Values.resources | nindent 20 }}
+            volumes:
+                - name: tls
+                  secret:
+                      secretName: {{ include "volume-syncing-operator.fullname" . }}

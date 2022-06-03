@@ -14,13 +14,21 @@ jobs:
             - name: Setup GenGo
               run: go install k8s.io/code-generator/cmd/deepcopy-gen@latest
 
+            - name: Set up Helm
+              uses: azure/setup-helm@v1
+              with:
+                  version: v3.8.1
+
             - name: Checkout
               uses: actions/checkout@v3
               with:
                   fetch-depth: 0
 
             - name: Build
-              run: "make build"
+              run: "make build-binary"  # todo: change to make build?
+
+            - name: Check Helm Chart
+              run: "make helm"
 
             - name: Test
               run: "make minio test coverage"

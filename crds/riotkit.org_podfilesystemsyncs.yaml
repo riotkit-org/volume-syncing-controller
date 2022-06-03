@@ -30,32 +30,35 @@ spec:
             type: object
           spec:
             properties:
+              automaticEncryption:
+                type: boolean
               env:
                 additionalProperties:
                   type: string
                 type: object
-              env_from_secret:
-                properties:
-                  ref:
-                    type: string
-                required:
-                - ref
-                type: object
-              local_path:
+              envFromSecrets:
+                items:
+                  properties:
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                  type: object
+                type: array
+              localPath:
                 type: string
-              pod_selector:
+              podSelector:
                 additionalProperties:
                   type: string
                 type: object
-              remote_path:
+              remotePath:
                 type: string
               schedule:
                 type: string
             required:
-            - env_from_secret
-            - local_path
-            - pod_selector
-            - remote_path
+            - localPath
+            - podSelector
+            - remotePath
             type: object
         required:
         - spec

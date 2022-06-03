@@ -1,0 +1,30 @@
+
+# work only inside namespaces that are labelled with `riotkit.org/volume-syncing-operator: "true"`
+onlyLabelledNamespaces: false
+
+podAnnotations: {}
+podLabels: {}
+env: {}
+image:
+    repository: ghcr.io/riotkit-org/volume-syncing-operator
+    #tag: latest
+
+health:
+    liveness:
+        enabled: true
+        attributes:
+            failureThreshold: 2
+            periodSeconds: 120
+    readiness:
+        enabled: true
+        attributes:
+            failureThreshold: 2
+            periodSeconds: 60
+
+service:
+    type: ClusterIP
+
+serviceAccount:
+    create: true
+    name: volume-syncing-operator
+    annotations: {}

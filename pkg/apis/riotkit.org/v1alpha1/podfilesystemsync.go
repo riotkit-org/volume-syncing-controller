@@ -1,6 +1,9 @@
 package v1alpha1
 
-import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+import (
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
 
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -16,19 +19,18 @@ type PodFilesystemSync struct {
 }
 
 type PodFilesystemSyncSpec struct {
-	PodSelector   PodSelector              `json:"pod_selector"`
-	LocalPath     string                   `json:"local_path"`
-	RemotePath    string                   `json:"remote_path"`
-	Schedule      string                   `json:"schedule,omitempty"`
-	Env           PodEnvironment           `json:"env,omitempty"`
-	EnvFromSecret PodEnvironmentFromSecret `json:"env_from_secret"`
+	PodSelector         PodSelector               `json:"podSelector"`
+	LocalPath           string                    `json:"localPath"`
+	RemotePath          string                    `json:"remotePath"`
+	Schedule            string                    `json:"schedule,omitempty"`
+	Env                 PodEnvironment            `json:"env,omitempty"`
+	EnvFromSecrets      PodEnvironmentFromSecrets `json:"envFromSecrets,omitempty"`
+	AutomaticEncryption bool                      `json:"automaticEncryption,omitempty"`
 }
 
 type PodSelector map[string]string
 type PodEnvironment map[string]string
-type PodEnvironmentFromSecret struct {
-	Ref string `json:"ref"`
-}
+type PodEnvironmentFromSecrets []v1.SecretReference
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +kubebuilder:object:root=true

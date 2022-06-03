@@ -132,5 +132,7 @@ spec:
         #REMOTE_ACCESS_KEY_ID: ...
         #REMOTE_SECRET_ACCESS_KEY: ...
     envFromSecret:
-        ref: cloud-press-secret-envs
+        - ref: cloud-press-secret-envs
+    # will generate a key, store it in `kind: Secret` and setup End-To-End encryption
+    automaticEncryption: true
 ```
