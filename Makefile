@@ -1,4 +1,5 @@
 include examples.mk
+include testing-env.mk
 
 .PHONY: gen-api
 gen-api:
