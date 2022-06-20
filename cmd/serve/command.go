@@ -1,10 +1,13 @@
 package serve
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/riotkit-org/volume-syncing-operator/pkg/client/clientset/versioned"
 	"github.com/riotkit-org/volume-syncing-operator/pkg/server"
+	"github.com/riotkit-org/volume-syncing-operator/pkg/server/cache"
+	"github.com/riotkit-org/volume-syncing-operator/pkg/server/mutation"
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -16,13 +19,14 @@ type Command struct {
 	LogLevel string
 	TLS      bool
 	LogJSON  bool
+	Image    string
 
 	TLSCrtPath string
 	TLSKeyPath string
 
 	riotkitClient *versioned.Clientset
 	client        *kubernetes.Clientset
-	cache         Cache
+	cache         *cache.Cache
 }
 
 func (c *Command) Run() error {
@@ -38,7 +42,7 @@ func (c *Command) Run() error {
 	// handle our core application
 	http.HandleFunc("/mutate-pods", c.serveMutatePods)
 	http.HandleFunc("/health", c.serveHealth)
-	http.HandleFunc("/populate-cache", c.servePopulateCache)
+	http.HandleFunc("/inform", c.serveInformer)
 
 	// start the server
 	// listens to clear text http on port 8080 unless TLS env var is set to "true"
@@ -60,18 +64,60 @@ func (c *Command) serveHealth(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Command) serveMutatePods(w http.ResponseWriter, r *http.Request) {
-
-}
-
-func (c *Command) servePopulateCache(w http.ResponseWriter, r *http.Request) {
-	request, parseErr := server.ParseAdmissionRequest(r)
+	review, parseErr := server.ParseAdmissionRequest(r)
 	if parseErr != nil {
 		w.WriteHeader(400)
 		fmt.Fprint(w, parseErr.Error())
 		return
 	}
 
-	logrus.Println(request.Request.Object.Object)
+	mutator := mutation.NewPodMutator(c.cache)
+	if err := mutator.ProcessAdmissionRequest(review, c.Image); err != nil {
+		w.WriteHeader(400)
+		fmt.Fprint(w, err.Error())
+		return
+	}
+
+	c.sendJsonResponse(review, w)
+}
+
+// serveInformer updates cache and can act as a validation
+func (c *Command) serveInformer(w http.ResponseWriter, r *http.Request) {
+	review, parseErr := server.ParseAdmissionRequest(r)
+	if parseErr != nil {
+		w.WriteHeader(400)
+		fmt.Fprint(w, parseErr.Error())
+		return
+	}
+
+	filesystemSync, err := mutation.ResolvePodFilesystemSync(review.Request)
+	if err != nil {
+		w.WriteHeader(400)
+		fmt.Fprint(w, parseErr.Error())
+		return
+	}
+
+	c.cache.Add(*filesystemSync)
+	w.WriteHeader(200)
+}
+
+func (c *Command) sendJsonResponse(out interface{}, w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	jsonOutput, err := json.Marshal(out)
+	if err != nil {
+		e := fmt.Sprintf("Could not parse admission response: %v", err)
+		logrus.Error(e)
+		http.Error(w, e, http.StatusInternalServerError)
+		return
+	}
+
+	// writes to console
+	logrus.Debug("Sending response")
+	logrus.Debugf("%s", jsonOutput)
+
+	// writes to HTTP resource
+	w.WriteHeader(200)
+	fmt.Fprintf(w, "%s", jsonOutput)
 }
 
 // setLogger sets the logger using env vars, it defaults to text logs on
