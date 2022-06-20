@@ -1,4 +1,4 @@
-package serve
+package cache
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"github.com/riotkit-org/volume-syncing-operator/pkg/apis/riotkit.org/v1alpha1"
 	"github.com/riotkit-org/volume-syncing-operator/pkg/client/clientset/versioned"
 	"github.com/sirupsen/logrus"
+	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -40,10 +41,28 @@ func (c Cache) Populate(riotkitClient *versioned.Clientset, kubeClient *kubernet
 
 // Add adds element to cache, making sure it will not be duplicated
 func (c *Cache) Add(element v1alpha1.PodFilesystemSync) {
+	logrus.Infof("[%s] Updating cache for '%s'", element.Namespace, element.Name)
 	indent := c.createCacheIdent(element)
 	c.specsIndexed[indent] = element
 }
 
 func (c *Cache) createCacheIdent(element v1alpha1.PodFilesystemSync) string {
 	return fmt.Sprintf("%v_%v", element.Namespace, element.Name)
+}
+
+func (c *Cache) FindMatchingForPod(pod corev1.Pod) (v1alpha1.PodFilesystemSync, error, bool) {
+	var matched v1alpha1.PodFilesystemSync
+	found := false
+
+	for _, definition := range c.specsIndexed {
+		if found {
+			return v1alpha1.PodFilesystemSync{}, errors.New("ambiguous match. At least two `kind: PodFilesystemSync` objects are matching the same `kind: Pod` using PodSelector"), false
+		}
+		if definition.IsPodMatching(pod) {
+			matched = definition
+			found = true
+		}
+	}
+
+	return matched, nil, found
 }

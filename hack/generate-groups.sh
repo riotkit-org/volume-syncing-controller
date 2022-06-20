@@ -1,11 +1,23 @@
 #!/usr/bin/env bash
 
 # Copyright 2017 The Kubernetes Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 set -o errexit
 set -o nounset
 set -o pipefail
-
+set -x
 
 # generate-groups generates everything for a project with external types only, e.g. a project based
 # on CustomResourceDefinitions.
@@ -32,34 +44,15 @@ APIS_PKG="$3"
 GROUPS_WITH_VERSIONS="$4"
 shift 4
 
-GENERATOR_VERSION=v0.20.2
 (
-  # To support running this script from anywhere, we have to first cd into this directory
-  # so we can install the tools.
+  # To support running this script from anywhere, first cd into this directory,
+  # and then install with forced module mode on and fully qualified name.
   cd "$(dirname "${0}")"
-  go get k8s.io/code-generator/cmd/{defaulter-gen,client-gen,lister-gen,informer-gen,deepcopy-gen}@$GENERATOR_VERSION
+  GO111MODULE=on go install k8s.io/code-generator/cmd/{defaulter-gen,client-gen,lister-gen,informer-gen,deepcopy-gen}
 )
-
-PREFIX=${GOBIN:-${GOPATH}/bin}
-
-# turn off module mode before running the generators
-# https://github.com/kubernetes/code-generator/issues/69
-# we also need to populate vendor
-readonly REPO_ROOT_DIR="${REPO_ROOT_DIR:-$(git rev-parse --show-toplevel 2> /dev/null)}"
-
-go mod vendor
-
-export GO111MODULE="off"
-
-# fake being in a gopath
-FAKE_GOPATH="$(mktemp -d)"
-trap 'rm -rf ${FAKE_GOPATH} && rm -rf ${REPO_ROOT_DIR}/vendor' EXIT
-
-FAKE_REPOPATH="${FAKE_GOPATH}/src/github.com/riotkit-org/volume-syncing-operator"
-mkdir -p "$(dirname "${FAKE_REPOPATH}")" && ln -s "${REPO_ROOT_DIR}" "${FAKE_REPOPATH}"
-
-export GOPATH="${FAKE_GOPATH}"
-cd "${FAKE_REPOPATH}"
+# Go installs the above commands to get installed in $GOBIN if defined, and $GOPATH/bin otherwise:
+GOBIN="$(go env GOBIN)"
+gobin="${GOBIN:-$(go env GOPATH)/bin}"
 
 function codegen::join() { local IFS="$1"; shift; echo "$*"; }
 
@@ -74,32 +67,27 @@ for GVs in ${GROUPS_WITH_VERSIONS}; do
   done
 done
 
-# All generators expect a mandatory boilerplate file as input. Since we don't add any boilerplate we use process substitution '<( )' to pass a dummy empty file.
-# See also https://github.com/kubernetes/code-generator/issues/6
 if [ "${GENS}" = "all" ] || grep -qw "deepcopy" <<<"${GENS}"; then
-  echo "Generating deepcopy funcs for ${GROUPS_WITH_VERSIONS}"
-  "${PREFIX}/deepcopy-gen" --input-dirs "$(codegen::join , "${FQ_APIS[@]}")" -O zz_generated.deepcopy --bounding-dirs "${APIS_PKG}" --go-header-file <(echo "")
+  echo "Generating deepcopy funcs"
+  "${gobin}/deepcopy-gen" --input-dirs "$(codegen::join , "${FQ_APIS[@]}")" -O zz_generated.deepcopy "$@"
 fi
 
 if [ "${GENS}" = "all" ] || grep -qw "client" <<<"${GENS}"; then
   echo "Generating clientset for ${GROUPS_WITH_VERSIONS} at ${OUTPUT_PKG}/${CLIENTSET_PKG_NAME:-clientset}"
-  "${PREFIX}/client-gen" --clientset-name "${CLIENTSET_NAME_VERSIONED:-versioned}" --input-base "" --input "$(codegen::join , "${FQ_APIS[@]}")" --output-package "${OUTPUT_PKG}/${CLIENTSET_PKG_NAME:-clientset}" --go-header-file <(echo "")
+  "${gobin}/client-gen" --clientset-name "${CLIENTSET_NAME_VERSIONED:-versioned}" --input-base "" --input "$(codegen::join , "${FQ_APIS[@]}")" --output-package "${OUTPUT_PKG}/${CLIENTSET_PKG_NAME:-clientset}" "$@"
 fi
 
 if [ "${GENS}" = "all" ] || grep -qw "lister" <<<"${GENS}"; then
   echo "Generating listers for ${GROUPS_WITH_VERSIONS} at ${OUTPUT_PKG}/listers"
-  "${PREFIX}/lister-gen" --input-dirs "$(codegen::join , "${FQ_APIS[@]}")" --output-package "${OUTPUT_PKG}/listers" --go-header-file <(echo "")
+  "${gobin}/lister-gen" --input-dirs "$(codegen::join , "${FQ_APIS[@]}")" --output-package "${OUTPUT_PKG}/listers" "$@"
 fi
 
 if [ "${GENS}" = "all" ] || grep -qw "informer" <<<"${GENS}"; then
   echo "Generating informers for ${GROUPS_WITH_VERSIONS} at ${OUTPUT_PKG}/informers"
-  "${PREFIX}/informer-gen" \
+  "${gobin}/informer-gen" \
            --input-dirs "$(codegen::join , "${FQ_APIS[@]}")" \
            --versioned-clientset-package "${OUTPUT_PKG}/${CLIENTSET_PKG_NAME:-clientset}/${CLIENTSET_NAME_VERSIONED:-versioned}" \
            --listers-package "${OUTPUT_PKG}/listers" \
            --output-package "${OUTPUT_PKG}/informers" \
-           --go-header-file <(echo "")
+           "$@"
 fi
-
-export GO111MODULE="on"
-cd $REPO_ROOT_DIR

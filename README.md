@@ -13,6 +13,18 @@ Docker container and Kubernetes operator for periodically synchronizing volumes 
 - [ ] Support for Kubernetes: **initContainer** to `restore` files, and **side-car** to back up files to remote
 - [x] Extra security layer preventing from accidental file deletion in comparison to plain `rclone` or `rsync` usage :100:
 - [x] Non-root container
+- [ ] Periodical synchronization using filesystem events instead of cron-like scheduler (both should be available)
+- [ ] Go Templating support inside `kind: PodFilesystemSync` to allow using single definition for multiple `kind: Pod` objects
+- [ ] Termination hook to synchronize Pod before it gets terminated
+- [ ] Health check: If N-synchronization fails, then mark Pod as unhealthy
+
+Kubernetes operator architecture
+--------------------------------
+
+The solution architecture is designed to be Pod-centric and live together with the application, not on the underlying infrastructural level.
+
+Above means, that when Pod starts - the volume is **restored from remote**, then all data is **synchronized to remote periodically** during Pod lifetime to keep an external storage up-to-date.
+
 
 Runtime compatibility
 ---------------------
@@ -114,12 +126,26 @@ kind: PodFilesystemSync
 metadata:
     name: cloud-press
 spec:
+    # follows K8s convention: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#resources-that-support-set-based-requirements
     podSelector:
-        my-pod-label: test
+        matchLabels:
+            my-pod-label: test
 
     localPath: /var/www/riotkit/wp-content
     remotePath: /example-org-bucket
-    schedule: "@every 5m"
+    
+    syncOptions:
+        # NOTICE: every next synchronization will be cancelled if previous one was not finished
+        method: "scheduler"  # or "fsnotify"
+        schedule: "@every 5m"
+        maxOneSyncPerMinutes: "15"  # if "fsnotify" used, then perform only max one sync per N minutes. Allows to decrease network/cpu/disk usage with a little risk factor
+
+        # optional "RunAs"
+        permissions:
+            # can be overridden by Pod annotation `riotkit.org/volume-user-id`
+            uid: 1001
+            # can be overridden by Pod annotation `riotkit.org/volume-group-id`
+            gid: 1001
     env:
         REMOTE_TYPE: s3
         REMOTE_PROVIDER: Minio
@@ -133,6 +159,11 @@ spec:
         #REMOTE_SECRET_ACCESS_KEY: ...
     envFromSecret:
         - ref: cloud-press-secret-envs
+
+    # optional
     # will generate a key, store it in `kind: Secret` and setup End-To-End encryption
-    automaticEncryption: true
+    # if existing secret exists and is valid, then will be reused
+    automaticEncryption:
+        enabled: true
+        secretName: cloud-press-remote-sync
 ```

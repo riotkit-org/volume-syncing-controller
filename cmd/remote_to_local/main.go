@@ -35,6 +35,7 @@ func NewRestoreCommand() *cobra.Command {
 	command.Flags().BoolVarP(&noDelete, "no-delete", "x", false, "Don't delete files in local filesystem (may be dangerous if wrong path specified)")
 	command.Flags().BoolVarP(&app.forceCleanUp, "force-delete-local-dir", "n", false, "Force delete local files that are not present on remote")
 	command.Flags().BoolVarP(&app.debug, "verbose", "v", false, "Increase verbosity")
+	// todo: --fsnotify
 
 	return command
 }

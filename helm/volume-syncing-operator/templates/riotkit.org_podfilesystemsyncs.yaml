@@ -31,6 +31,26 @@ spec:
           spec:
             properties:
               automaticEncryption:
+                properties:
+                  enabled:
+                    type: boolean
+                  secretName:
+                    type: string
+                required:
+                - secretName
+                type: object
+              cleanUp:
+                properties:
+                  forceLocal:
+                    type: boolean
+                  forceRemote:
+                    type: boolean
+                  local:
+                    type: boolean
+                  remote:
+                    type: boolean
+                type: object
+              debug:
                 type: boolean
               env:
                 additionalProperties:
@@ -48,13 +68,49 @@ spec:
               localPath:
                 type: string
               podSelector:
-                additionalProperties:
-                  type: string
+                properties:
+                  matchExpressions:
+                    items:
+                      properties:
+                        key:
+                          type: string
+                        operator:
+                          type: string
+                        values:
+                          items:
+                            type: string
+                          type: array
+                      required:
+                      - key
+                      - operator
+                      type: object
+                    type: array
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    type: object
                 type: object
               remotePath:
                 type: string
-              schedule:
-                type: string
+              syncOptions:
+                properties:
+                  maxOneSyncPerMinutes:
+                    type: string
+                  method:
+                    enum:
+                    - scheduler
+                    - fsnotify
+                    type: string
+                  permissions:
+                    properties:
+                      gid:
+                        type: string
+                      uid:
+                        type: string
+                    type: object
+                  schedule:
+                    type: string
+                type: object
             required:
             - localPath
             - podSelector

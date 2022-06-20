@@ -6,6 +6,8 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}"; )" &> /dev/null && pwd 2> /dev/null; )";
+
 # Conveniently set GOPATH if unset
 if [[ -z "${GOPATH:-}" ]]; then
   export GOPATH="$(go env GOPATH)"
@@ -28,4 +30,14 @@ readonly REPO_NAME="${REPO_NAME:-$(basename ${REPO_ROOT_DIR} 2> /dev/null)}"
 # not having dependency cycle.
 bash ${REPO_ROOT_DIR}/hack/generate-groups.sh "deepcopy,client,informer,lister" \
   github.com/riotkit-org/volume-syncing-operator/pkg/client github.com/riotkit-org/volume-syncing-operator/pkg/apis \
-  "riotkit.org:v1alpha1"
+  "riotkit.org:v1alpha1" \
+  --go-header-file="${SCRIPT_DIR}/boilerplate.go.txt" \
+  --output-base=${SCRIPT_DIR}/../.build/generated
+
+# clean up
+rm -rf ${SCRIPT_DIR}/../pkg/client
+
+# copy regenerated
+cp -pr ${SCRIPT_DIR}/../.build/generated/github.com/riotkit-org/volume-syncing-operator/pkg/apis/* ${SCRIPT_DIR}/../pkg/apis
+mv ${SCRIPT_DIR}/../.build/generated/github.com/riotkit-org/volume-syncing-operator/pkg/client ${SCRIPT_DIR}/../pkg/client
+rm -rf ${SCRIPT_DIR}/../.build/generated

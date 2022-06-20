@@ -19,7 +19,7 @@ func GetEnvOrDefault(name string, defaultValue interface{}) interface{} {
 	return value
 }
 
-// IsLocalDirEmpty: https://stackoverflow.com/a/30708914/6782994
+// IsLocalDirEmpty https://stackoverflow.com/a/30708914/6782994
 func IsLocalDirEmpty(name string) (bool, error) {
 	f, err := os.Open(name)
 	if err != nil {
