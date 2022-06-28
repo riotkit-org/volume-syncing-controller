@@ -1,17 +1,14 @@
 package serve
 
 import (
-	"encoding/json"
-	"fmt"
 	"github.com/pkg/errors"
 	"github.com/riotkit-org/volume-syncing-operator/pkg/client/clientset/versioned"
-	"github.com/riotkit-org/volume-syncing-operator/pkg/server"
 	"github.com/riotkit-org/volume-syncing-operator/pkg/server/cache"
-	"github.com/riotkit-org/volume-syncing-operator/pkg/server/mutation"
+	"github.com/riotkit-org/volume-syncing-operator/pkg/server/http"
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
-	"net/http"
+	netHttp "net/http"
 	"os"
 )
 
@@ -27,12 +24,15 @@ type Command struct {
 	riotkitClient *versioned.Clientset
 	client        *kubernetes.Clientset
 	cache         *cache.Cache
+	endpoints     *http.EndpointServingService
 }
 
 func (c *Command) Run() error {
 	// initialize
 	c.setLogger()
-	c.riotkitClient, c.client = initClient()
+	c.cache = &cache.Cache{}
+	c.riotkitClient, c.client = createKubernetesClients()
+	c.endpoints = http.NewEndpointServingService(c.Image, c.riotkitClient, c.client, c.cache)
 
 	// populate cache to know about volume syncing configurations created before the application was started
 	if err := c.cache.Populate(c.riotkitClient, c.client); err != nil {
@@ -40,9 +40,9 @@ func (c *Command) Run() error {
 	}
 
 	// handle our core application
-	http.HandleFunc("/mutate-pods", c.serveMutatePods)
-	http.HandleFunc("/health", c.serveHealth)
-	http.HandleFunc("/inform", c.serveInformer)
+	netHttp.HandleFunc("/mutate-pods", c.endpoints.ServeMutatePods)
+	netHttp.HandleFunc("/health", c.endpoints.ServeHealth)
+	netHttp.HandleFunc("/inform", c.endpoints.ServeInformer)
 
 	// start the server
 	// listens to clear text http on port 8080 unless TLS env var is set to "true"
@@ -50,74 +50,11 @@ func (c *Command) Run() error {
 		cert := "/etc/admission-webhook/tls/tls.crt"
 		key := "/etc/admission-webhook/tls/tls.key"
 		logrus.Print("Listening on port 4443...")
-		return http.ListenAndServeTLS(":4443", cert, key, nil)
+		return netHttp.ListenAndServeTLS(":4443", cert, key, nil)
 	} else {
 		logrus.Print("Listening on port 8080...")
-		return http.ListenAndServe(":8080", nil)
+		return netHttp.ListenAndServe(":8080", nil)
 	}
-}
-
-// serveHealth returns 200 when things are good
-func (c *Command) serveHealth(w http.ResponseWriter, r *http.Request) {
-	logrus.WithField("uri", r.RequestURI).Debug("healthy")
-	fmt.Fprint(w, "OK")
-}
-
-func (c *Command) serveMutatePods(w http.ResponseWriter, r *http.Request) {
-	review, parseErr := server.ParseAdmissionRequest(r)
-	if parseErr != nil {
-		w.WriteHeader(400)
-		fmt.Fprint(w, parseErr.Error())
-		return
-	}
-
-	mutator := mutation.NewPodMutator(c.cache)
-	if err := mutator.ProcessAdmissionRequest(review, c.Image); err != nil {
-		w.WriteHeader(400)
-		fmt.Fprint(w, err.Error())
-		return
-	}
-
-	c.sendJsonResponse(review, w)
-}
-
-// serveInformer updates cache and can act as a validation
-func (c *Command) serveInformer(w http.ResponseWriter, r *http.Request) {
-	review, parseErr := server.ParseAdmissionRequest(r)
-	if parseErr != nil {
-		w.WriteHeader(400)
-		fmt.Fprint(w, parseErr.Error())
-		return
-	}
-
-	filesystemSync, err := mutation.ResolvePodFilesystemSync(review.Request)
-	if err != nil {
-		w.WriteHeader(400)
-		fmt.Fprint(w, parseErr.Error())
-		return
-	}
-
-	c.cache.Add(*filesystemSync)
-	w.WriteHeader(200)
-}
-
-func (c *Command) sendJsonResponse(out interface{}, w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "application/json")
-	jsonOutput, err := json.Marshal(out)
-	if err != nil {
-		e := fmt.Sprintf("Could not parse admission response: %v", err)
-		logrus.Error(e)
-		http.Error(w, e, http.StatusInternalServerError)
-		return
-	}
-
-	// writes to console
-	logrus.Debug("Sending response")
-	logrus.Debugf("%s", jsonOutput)
-
-	// writes to HTTP resource
-	w.WriteHeader(200)
-	fmt.Fprintf(w, "%s", jsonOutput)
 }
 
 // setLogger sets the logger using env vars, it defaults to text logs on
@@ -135,7 +72,8 @@ func (c *Command) setLogger() {
 	}
 }
 
-func initClient() (*versioned.Clientset, *kubernetes.Clientset) {
+// createKubernetesClients is creating API client libraries instances
+func createKubernetesClients() (*versioned.Clientset, *kubernetes.Clientset) {
 	kubeConfig := os.Getenv("HOME") + "/.kube/config"
 	if os.Getenv("KUBECONFIG") != "" {
 		kubeConfig = os.Getenv("KUBECONFIG")

@@ -7,7 +7,7 @@
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
-    name: {{ include "volume-syncing-operator.fullname" . }}
+    name: {{ include "volume-syncing-operator.fullname" . }}-mutator
     namespace: {{ .Release.Namespace }}
     labels:
         {{- include "volume-syncing-operator.labels" . | nindent 8 }}
@@ -39,6 +39,16 @@ webhooks:
       sideEffects: NoneOnDryRun
       timeoutSeconds: 5
 
+
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+    name: {{ include "volume-syncing-operator.fullname" . }}-informer
+    namespace: {{ .Release.Namespace }}
+    labels:
+      {{- include "volume-syncing-operator.labels" . | nindent 8 }}
+webhooks:
     - name: {{ include "volume-syncing-operator.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
       failurePolicy: Fail
       {{- if .Values.onlyLabelledNamespaces }}
@@ -56,7 +66,7 @@ webhooks:
           service:
               namespace: {{ .Release.Namespace }}
               name: {{ include "volume-syncing-operator.fullname" . }}
-              path: /update-cache
+              path: /inform
               port: 4443
           caBundle: {{ b64enc $ca.Cert }}
       admissionReviewVersions: ["v1"]

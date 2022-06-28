@@ -17,6 +17,8 @@ Docker container and Kubernetes operator for periodically synchronizing volumes 
 - [ ] Go Templating support inside `kind: PodFilesystemSync` to allow using single definition for multiple `kind: Pod` objects
 - [ ] Termination hook to synchronize Pod before it gets terminated
 - [ ] Health check: If N-synchronization fails, then mark Pod as unhealthy
+- [ ] Allow to decide about the order of initContainer in CRD + annotation
+- [ ] Allow to disable synchronization or restore in CRD + annotation
 
 Kubernetes operator architecture
 --------------------------------

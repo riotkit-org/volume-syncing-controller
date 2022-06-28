@@ -37,18 +37,30 @@ func ResolvePod(a *admissionv1.AdmissionRequest) (*corev1.Pod, error) {
 	return &p, nil
 }
 
-func ResolvePodFilesystemSync(a *admissionv1.AdmissionRequest) (*v1alpha1.PodFilesystemSync, error) {
+func ResolvePodFilesystemSync(a *admissionv1.AdmissionRequest) (*v1alpha1.PodFilesystemSync, bool, error) {
 	if a.Kind.Kind != "PodFilesystemSync" {
-		return nil, fmt.Errorf("only PodFilesystemSync definitions are supported here, got request type: %v", a.Kind.Kind)
+		return nil, false, fmt.Errorf("only PodFilesystemSync definitions are supported here, got request type: %v", a.Kind.Kind)
 	}
+
+	// object could be CREATED/UPDATED or DELETED
+	var objectRaw []byte
+	var isAdded bool
+	if a.Operation == admissionv1.Delete {
+		objectRaw = a.OldObject.Raw
+		isAdded = false
+	} else {
+		objectRaw = a.Object.Raw
+		isAdded = true
+	}
+
 	p := v1alpha1.PodFilesystemSync{}
-	if err := json.Unmarshal(a.Object.Raw, &p); err != nil {
-		return nil, err
+	if err := json.Unmarshal(objectRaw, &p); err != nil {
+		return nil, isAdded, errors.Wrapf(err, "Cannot unmarshal request object: %v", a.Object.Raw)
 	}
 	if p.ObjectMeta.Namespace == "" && a.Namespace != "" {
 		p.ObjectMeta.Namespace = a.Namespace
 	}
-	return &p, nil
+	return &p, isAdded, nil
 }
 
 func isPodToBeProcessed(pod *corev1.Pod) bool {

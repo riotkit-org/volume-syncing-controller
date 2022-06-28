@@ -37,3 +37,10 @@ test_remote_to_local:
 
 	# then download into different directory
 	.build/volume-syncing-operator remote-to-local-sync -v -s testbucket -d ./.build/testing-restore -p 'type=s3' -p 'provider=Minio' -p 'access_key_id=AKIAIOSFODNN7EXAMPLE' -p 'secret_access_key = wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY' -p 'endpoint = http://localhost:9000' -p 'acl = private'
+
+test_k8s_1:
+	kubectl delete -f tests/.examples/minio-without-encryption-scheduler-permissions/sync.yaml || true
+	kubectl delete -f tests/.examples/minio-without-encryption-scheduler-permissions/pod.yaml || true
+	sleep 1
+	kubectl apply -f tests/.examples/minio-without-encryption-scheduler-permissions/sync.yaml
+	kubectl apply -f tests/.examples/minio-without-encryption-scheduler-permissions/pod.yaml

@@ -91,6 +91,6 @@ func (in *PodFilesystemSyncSpec) getPodSelector() labels.Selector {
 }
 
 // IsPodMatching is `kind: Pod` matching .spec.podSelector of `kind: PodFilesystemSync`?
-func (in *PodFilesystemSync) IsPodMatching(pod v1.Pod) bool {
+func (in *PodFilesystemSync) IsPodMatching(pod *v1.Pod) bool {
 	return in.Spec.getPodSelector().Matches(labels.Set(pod.Labels))
 }
