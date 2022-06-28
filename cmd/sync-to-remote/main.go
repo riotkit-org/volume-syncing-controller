@@ -8,6 +8,7 @@ import (
 
 func NewSyncToRemoteCommand() *cobra.Command {
 	var noTemplate bool
+	var noDelete bool
 	app := SyncToRemoteCommand{}
 
 	command := &cobra.Command{
@@ -15,6 +16,7 @@ func NewSyncToRemoteCommand() *cobra.Command {
 		Short: "Copies files to remote filesystem",
 		Run: func(command *cobra.Command, args []string) {
 			app.renderConfig = !noTemplate
+			app.cleanUp = !noDelete
 
 			err := app.Sync()
 			if err != nil {
@@ -24,14 +26,15 @@ func NewSyncToRemoteCommand() *cobra.Command {
 	}
 
 	command.Flags().StringVarP(&app.configPath, "config-path", "c", helpers.GetEnvOrDefault("CONFIG_PATH", "rclone.conf").(string), "rclone configuration path (specify together with --no-template to use already prepared config)")
-	command.Flags().BoolVarP(&noTemplate, "no-template", "", false, "Disables rendering of the rclone configuration file")
+	command.Flags().BoolVarP(&noTemplate, "no-template", "", true, "Disables rendering of the rclone configuration file")
 	command.Flags().StringVarP(&app.srcPath, "src", "s", "./", "Local path to copy files from")
 	command.Flags().StringVarP(&app.destPath, "dst", "d", "/", "Target path")
 	command.Flags().StringSliceVarP(&app.remoteParams, "param", "p", []string{}, "List of key=value settings for remote e.g. -p 'type=s3' -p 'provider=Minio' -p 'access_key_id=AKIAIOSFODNN7EXAMPLE'")
 	command.Flags().StringSliceVarP(&app.encryptParams, "enc-param", "e", []string{}, "List of key=value settings for remote e.g. -p 'remote=remote:testbucket' -p 'password=xxxxxxxx'")
 	command.Flags().StringVarP(&app.SchedulerExpression, "schedule", "", "", "Set to a valid crontab-like expression to schedule synchronization periodically")
-	command.Flags().BoolVarP(&app.ForceSync, "force-even-if-remote-would-be-cleared", "f", false, "Force synchronize, even if it would mean to remove all files from remote")
-	command.Flags().BoolVarP(&app.debug, "verbose", "v", false, "Increase verbosity")
+	command.Flags().BoolVarP(&noDelete, "no-delete", "x", true, "Don't delete files in remote filesystem (may be dangerous if wrong path specified)")
+	command.Flags().BoolVarP(&app.ForceSync, "force-even-if-remote-would-be-cleared", "f", true, "Force synchronize, even if it would mean to remove all files from remote")
+	command.Flags().BoolVarP(&app.debug, "verbose", "v", true, "Increase verbosity")
 
 	return command
 }

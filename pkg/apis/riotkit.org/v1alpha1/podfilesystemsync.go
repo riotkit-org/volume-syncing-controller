@@ -24,20 +24,27 @@ type PodFilesystemSync struct {
 }
 
 type CleanUpSpec struct {
-	Remote      bool `json:"remote,omitempty"`
-	Local       bool `json:"local,omitempty"`
+	// +kubebuilder:default:=true
+	Remote bool `json:"remote,omitempty"`
+	// +kubebuilder:default:=true
+	Local bool `json:"local,omitempty"`
+	// +kubebuilder:default:=false
 	ForceRemote bool `json:"forceRemote,omitempty"`
-	ForceLocal  bool `json:"forceLocal,omitempty"`
+	// +kubebuilder:default:=false
+	ForceLocal bool `json:"forceLocal,omitempty"`
 }
 
 type AutomaticEncryptionSpec struct {
+	// +kubebuilder:default:=false
 	Enabled    bool   `json:"enabled,omitempty"`
 	SecretName string `json:"secretName"`
 }
 
 type SyncOptionsSpec struct {
-	Schedule             string                `json:"schedule,omitempty"` // will default to every 15 minutes
-	Method               ChangesWatchingMethod `json:"method,omitempty"`   // scheduler or fsnotify
+	// +kubebuilder:default:=@every 15m
+	Schedule string `json:"schedule,omitempty"` // will default to every 15 minutes
+	// +kubebuilder:default:=scheduler
+	Method               ChangesWatchingMethod `json:"method,omitempty"` // scheduler or fsnotify
 	MaxOneSyncPerMinutes string                `json:"maxOneSyncPerMinutes,omitempty"`
 	Permissions          PermissionsSpec       `json:"permissions,omitempty"`
 }
@@ -62,8 +69,9 @@ type PodFilesystemSyncSpec struct {
 
 	// automatic encryption is creating a `kind: Secret` if not exists and configuring encryption automatically
 	AutomaticEncryption AutomaticEncryptionSpec `json:"automaticEncryption,omitempty"`
-	Debug               bool                    `json:"debug,omitempty"`
-	CleanUp             CleanUpSpec             `json:"cleanUp,omitempty"`
+	// +kubebuilder:default:=false
+	Debug   bool        `json:"debug,omitempty"`
+	CleanUp CleanUpSpec `json:"cleanUp,omitempty"`
 }
 
 type PodSelector map[string]string

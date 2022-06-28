@@ -14,19 +14,21 @@ func MutatePodByInjectingInitContainer(pod *corev1.Pod, image string, params con
 
 	if !hasInitContainer(pod) {
 		nLogger.Infof("`kind: Pod` '%s' has no initContainer present", pod.ObjectMeta.Name)
-		pod.Spec.InitContainers = append(pod.Spec.InitContainers, createContainer(pod, image, params, params.CreateCommandlineArgumentsForInitContainer()))
+		pod.Spec.InitContainers = append(pod.Spec.InitContainers, createContainer(context.InitContainerName, pod, image, params, params.CreateCommandlineArgumentsForInitContainer()))
 	}
+
 	if !hasSideCar(pod) {
-		pod.Spec.Containers = append(pod.Spec.Containers, createContainer(pod, image, params, params.CreateCommandlineArgumentsForSideCar()))
+		nLogger.Infof("`kind: Pod` '%s' has no side car present", pod.ObjectMeta.Name)
+		pod.Spec.Containers = append(pod.Spec.Containers, createContainer(context.SideCarName, pod, image, params, params.CreateCommandlineArgumentsForSideCar()))
 	}
 
 	return nil
 }
 
 // createContainer injects an initContainer
-func createContainer(pod *corev1.Pod, image string, params context.SynchronizationParameters, commandlineArgs []string) corev1.Container {
+func createContainer(containerName string, pod *corev1.Pod, image string, params context.SynchronizationParameters, commandlineArgs []string) corev1.Container {
 	container := corev1.Container{
-		Name:         context.InitContainerName,
+		Name:         containerName,
 		Image:        image,
 		Command:      []string{"/usr/bin/volume-syncing-operator"},
 		Args:         commandlineArgs,

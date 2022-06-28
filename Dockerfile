@@ -11,7 +11,8 @@ FROM alpine:3.16 AS workspaceBuilder
 
 RUN mkdir -p /etc/volume-syncing-operator /mnt \
     && chown 65312:65312 /etc/volume-syncing-operator /mnt \
-    && chmod 777 /etc/volume-syncing-operator /mnt
+    && touch /etc/volume-syncing-operator/rclone.conf \
+    && chmod -R 777 /etc/volume-syncing-operator /mnt
 
 
 # =========================

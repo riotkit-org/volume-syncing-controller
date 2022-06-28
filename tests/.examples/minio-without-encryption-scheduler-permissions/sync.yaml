@@ -9,8 +9,13 @@ spec:
         matchLabels:
             my-pod-label: test
 
-    localPath: /mnt/test
-    remotePath: /example-org-bucket
+    localPath: /workspace/source
+    remotePath: /stalin-was-a-dick
+    debug: true
+
+    cleanUp:
+        remote: true
+        local: true
 
     syncOptions:
         method: "scheduler"
@@ -21,7 +26,9 @@ spec:
     env:
         REMOTE_TYPE: s3
         REMOTE_PROVIDER: Minio
-        REMOTE_ENDPOINT: http://localhost:9000
+        REMOTE_ENDPOINT: http://minio.default.svc.cluster.local:9000
+        REMOTE_ACCESS_KEY_ID: AKIAIOSFODNN7EXAMPLE
+        REMOTE_SECRET_ACCESS_KEY: wJaFuCKtnFEMI/CApItaliSM/bPxRfiCYEXAMPLEKEY
         REMOTE_ACL: private
 #    envFromSecret:
 #        - ref: cloud-press-secret-envs

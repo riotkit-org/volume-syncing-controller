@@ -34,16 +34,12 @@ type SynchronizationParameters struct {
 // CreateCommandlineArgumentsForInitContainer is creating commandline arguments for volume-syncing-operator remote-to-local-sync
 func (p *SynchronizationParameters) CreateCommandlineArgumentsForInitContainer() []string {
 	args := []string{
+		"remote-to-local-sync",
 		"--src", p.RemotePath,
 		"--dst", p.LocalPath,
+		"--config-path", "/etc/volume-syncing-operator/rclone.conf",
 	}
 
-	if p.SyncSchedule != "" && (p.SyncMethod == "scheduler" || p.SyncMethod == "") {
-		args = append(args, "--schedule", p.SyncSchedule)
-	}
-	if p.SyncMethod == "fsnotify" {
-		args = append(args, "--fsnotify", string(p.SyncMaxOneSyncPerMinutes))
-	}
 	if p.Debug {
 		args = append(args, "--verbose")
 	}
@@ -60,15 +56,17 @@ func (p *SynchronizationParameters) CreateCommandlineArgumentsForInitContainer()
 // CreateCommandlineArgumentsForSideCar is creating commandline args for volume-syncing-operator sync-to-remote
 func (p *SynchronizationParameters) CreateCommandlineArgumentsForSideCar() []string {
 	args := []string{
+		"sync-to-remote",
 		"--src", p.LocalPath,
 		"--dst", p.RemotePath,
+		"--config-path", "/etc/volume-syncing-operator/rclone.conf",
 	}
 
 	if p.SyncSchedule != "" && (p.SyncMethod == "scheduler" || p.SyncMethod == "") {
 		args = append(args, "--schedule", p.SyncSchedule)
 	}
 	if p.SyncMethod == "fsnotify" {
-		args = append(args, "--fsnotify", string(p.SyncMaxOneSyncPerMinutes))
+		args = append(args, "--fsnotify", p.SyncMaxOneSyncPerMinutes)
 	}
 	if !p.CleanUpRemote {
 		args = append(args, "--no-delete")

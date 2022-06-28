@@ -9,11 +9,12 @@ metadata:
 spec:
     restartPolicy: Never
     automountServiceAccountToken: false
+    terminationGracePeriodSeconds: 1
     containers:
         - command:
               - /bin/sh
               - "-c"
-              - "find /workspace/source; ls -la /workspace/source"
+              - "find /workspace/source; ls -la /workspace/source; sleep 3600"
           image: busybox:latest
           name: test
           volumeMounts:

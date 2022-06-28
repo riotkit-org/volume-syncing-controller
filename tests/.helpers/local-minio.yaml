@@ -1,0 +1,17 @@
+# existingSecret: ...
+accessKey: AKIAIOSFODNN7EXAMPLE
+secretKey: wJaFuCKtnFEMI/CApItaliSM/bPxRfiCYEXAMPLEKEY
+mode: standalone # recommended to use "distributed" for production
+
+persistence:
+    enabled: false
+
+resources:
+    requests:
+        memory: 0
+
+defaultBucket:
+    enabled: true
+    name: stalin-was-a-dick
+    # policy: ...
+    purge: false

@@ -13,6 +13,7 @@ type SyncToRemoteCommand struct {
 	renderConfig        bool
 	SchedulerExpression string
 	ForceSync           bool
+	cleanUp             bool
 	debug               bool
 
 	srcPath  string
@@ -38,10 +39,6 @@ func (c *SyncToRemoteCommand) Sync() error {
 }
 
 func (c *SyncToRemoteCommand) sync() error {
-	if err := c.validate(); err != nil {
-		return errors.Wrap(err, "Error while trying to sync to remote")
-	}
-
 	runner := rclone.Runner{
 		RenderConfig:     c.renderConfig,
 		ConfigPath:       c.configPath,
@@ -50,7 +47,16 @@ func (c *SyncToRemoteCommand) sync() error {
 		EncryptionParams: c.encryptParams,
 		Debug:            c.debug,
 	}
-	return runner.SyncToRemote(c.srcPath, c.destPath)
+
+	if c.cleanUp {
+		if err := c.validate(); err != nil {
+			return errors.Wrap(err, "Error while trying to sync to remote")
+		}
+
+		return runner.SyncToRemote(c.srcPath, c.destPath)
+	}
+
+	return runner.CopyToRemote(c.srcPath, c.destPath)
 }
 
 // validate will make sure that remote will not be accidentally deleted

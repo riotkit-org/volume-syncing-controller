@@ -11,6 +11,8 @@ k3d@registry: k3d@make-sure
 	kubectl apply -f tests/.helpers/local-registry.yaml
 
 k3d@minio: k3d@make-sure
+	helm repo add minio https://helm.min.io/
+	helm upgrade --install minio minio/minio --values ./tests/.helpers/local-minio.yaml --wait --timeout 2m0s
 
 k3d@publish-image: ## Publish to local Kubernetes registry
 	docker build . -t ${DEV_LOCAL_IMAGE_REPOSITORY}:snapshot

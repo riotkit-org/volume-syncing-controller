@@ -27,6 +27,11 @@ func (r *Runner) SyncToRemote(localPath string, targetPath string) error {
 	return r.performFilesCopying("sync", localPath, r.getRemoteName()+":/"+strings.TrimLeft(targetPath, "/"))
 }
 
+// CopyToRemote invokes a "rclone copy" to remote destination
+func (r *Runner) CopyToRemote(localPath string, targetPath string) error {
+	return r.performFilesCopying("copy", localPath, r.getRemoteName()+":/"+strings.TrimLeft(targetPath, "/"))
+}
+
 // SyncFromRemote invokes a "rclone sync" to bring files back from remote storage
 func (r *Runner) SyncFromRemote(remotePath string, localTargetPath string) error {
 	return r.performFilesCopying("sync", r.getRemoteName()+":/"+strings.TrimLeft(remotePath, "/"), localTargetPath)
@@ -39,6 +44,8 @@ func (r *Runner) CopyFromRemote(remotePath string, localTargetPath string) error
 
 // performFilesCopying invokes a "rclone" command
 func (r *Runner) performFilesCopying(action string, from string, to string) error {
+	logrus.Infof("Performing %s from '%s' to '%s'", action, from, to)
+
 	if r.RenderConfig {
 		configErr := r.createConfig()
 		defer r.cleanUpConfig()

@@ -33,6 +33,7 @@ spec:
               automaticEncryption:
                 properties:
                   enabled:
+                    default: false
                     type: boolean
                   secretName:
                     type: string
@@ -42,15 +43,20 @@ spec:
               cleanUp:
                 properties:
                   forceLocal:
+                    default: false
                     type: boolean
                   forceRemote:
+                    default: false
                     type: boolean
                   local:
+                    default: true
                     type: boolean
                   remote:
+                    default: true
                     type: boolean
                 type: object
               debug:
+                default: false
                 type: boolean
               env:
                 additionalProperties:
@@ -97,6 +103,7 @@ spec:
                   maxOneSyncPerMinutes:
                     type: string
                   method:
+                    default: scheduler
                     enum:
                     - scheduler
                     - fsnotify
@@ -109,6 +116,7 @@ spec:
                         type: string
                     type: object
                   schedule:
+                    default: '@every 15m'
                     type: string
                 type: object
             required:

@@ -87,7 +87,7 @@ func VerifySecrets(syncDefinition *v1alpha1.PodFilesystemSync, namespace string)
 
 // ResolveTemplatedEnvironment is creating a map of environment variables with addition of template parsing
 func ResolveTemplatedEnvironment(pod *corev1.Pod, syncDefinition *v1alpha1.PodFilesystemSync) (map[string]string, error) {
-	var processed map[string]string
+	processed := make(map[string]string)
 
 	for k, v := range syncDefinition.Spec.Env {
 		processedVal, err := processTemplate(v, k, pod)
