@@ -12,6 +12,6 @@ resources:
 
 defaultBucket:
     enabled: true
-    name: stalin-was-a-dick
+    name: stalin-was-a-dickhead
     # policy: ...
     purge: false

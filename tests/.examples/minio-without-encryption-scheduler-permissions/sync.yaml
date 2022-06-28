@@ -10,7 +10,7 @@ spec:
             my-pod-label: test
 
     localPath: /workspace/source
-    remotePath: /stalin-was-a-dick
+    remotePath: /stalin-was-a-dickhead
     debug: true
 
     cleanUp:
