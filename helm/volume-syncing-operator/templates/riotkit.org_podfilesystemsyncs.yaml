@@ -40,21 +40,6 @@ spec:
                 required:
                 - secretName
                 type: object
-              cleanUp:
-                properties:
-                  forceLocal:
-                    default: false
-                    type: boolean
-                  forceRemote:
-                    default: false
-                    type: boolean
-                  local:
-                    default: true
-                    type: boolean
-                  remote:
-                    default: true
-                    type: boolean
-                type: object
               debug:
                 default: false
                 type: boolean
@@ -100,6 +85,30 @@ spec:
                 type: string
               syncOptions:
                 properties:
+                  allowedDirections:
+                    properties:
+                      fromRemote:
+                        default: true
+                        type: boolean
+                      toRemote:
+                        default: true
+                        type: boolean
+                    type: object
+                  cleanUp:
+                    properties:
+                      forceLocal:
+                        default: false
+                        type: boolean
+                      forceRemote:
+                        default: false
+                        type: boolean
+                      local:
+                        default: true
+                        type: boolean
+                      remote:
+                        default: true
+                        type: boolean
+                    type: object
                   maxOneSyncPerMinutes:
                     type: string
                   method:
@@ -115,6 +124,9 @@ spec:
                       uid:
                         type: string
                     type: object
+                  restoreRemoteOnFirstRun:
+                    default: true
+                    type: boolean
                   schedule:
                     default: '@every 15m'
                     type: string
@@ -123,12 +135,32 @@ spec:
             - localPath
             - podSelector
             - remotePath
+            - syncOptions
+            type: object
+          status:
+            properties:
+              locations:
+                items:
+                  properties:
+                    directory:
+                      type: string
+                    synchronizedToRemote:
+                      type: boolean
+                  required:
+                  - directory
+                  - synchronizedToRemote
+                  type: object
+                type: array
+            required:
+            - locations
             type: object
         required:
         - spec
         type: object
     served: true
     storage: true
+    subresources:
+      status: {}
 status:
   acceptedNames:
     kind: ""

@@ -8,16 +8,16 @@ import (
 	"strings"
 )
 
-// MutatePodByInjectingInitContainer returns a new mutated pod according to set env rules
-func MutatePodByInjectingInitContainer(pod *corev1.Pod, image string, params context.SynchronizationParameters) error {
+// MutatePodByInjectingContainers returns a new mutated pod according to set env rules
+func MutatePodByInjectingContainers(pod *corev1.Pod, image string, preSynchronizeFromRemoteOnStart bool, canSynchronizeToRemote bool, params context.SynchronizationParameters) error {
 	nLogger := logrus.WithField("mutation", "Mutating pod")
 
-	if !hasInitContainer(pod) {
+	if preSynchronizeFromRemoteOnStart && !hasInitContainer(pod) {
 		nLogger.Infof("`kind: Pod` '%s' has no initContainer present", pod.ObjectMeta.Name)
 		pod.Spec.InitContainers = append(pod.Spec.InitContainers, createContainer(context.InitContainerName, pod, image, params, params.CreateCommandlineArgumentsForInitContainer()))
 	}
 
-	if !hasSideCar(pod) {
+	if canSynchronizeToRemote && !hasSideCar(pod) {
 		nLogger.Infof("`kind: Pod` '%s' has no side car present", pod.ObjectMeta.Name)
 		pod.Spec.Containers = append(pod.Spec.Containers, createContainer(context.SideCarName, pod, image, params, params.CreateCommandlineArgumentsForSideCar()))
 	}

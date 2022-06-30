@@ -102,6 +102,18 @@ func (c *FakePodFilesystemSyncs) Update(ctx context.Context, podFilesystemSync *
 	return obj.(*v1alpha1.PodFilesystemSync), err
 }
 
+// UpdateStatus was generated because the type contains a Status member.
+// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
+func (c *FakePodFilesystemSyncs) UpdateStatus(ctx context.Context, podFilesystemSync *v1alpha1.PodFilesystemSync, opts v1.UpdateOptions) (*v1alpha1.PodFilesystemSync, error) {
+	obj, err := c.Fake.
+		Invokes(testing.NewUpdateSubresourceAction(podfilesystemsyncsResource, "status", c.ns, podFilesystemSync), &v1alpha1.PodFilesystemSync{})
+
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1alpha1.PodFilesystemSync), err
+}
+
 // Delete takes name of the podFilesystemSync and deletes it. Returns an error if one occurs.
 func (c *FakePodFilesystemSyncs) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.

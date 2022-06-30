@@ -1,6 +1,7 @@
 package context
 
 import (
+	"github.com/pkg/errors"
 	"github.com/riotkit-org/volume-syncing-operator/pkg/apis/riotkit.org/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 )
@@ -83,7 +84,7 @@ func (p *SynchronizationParameters) CreateCommandlineArgumentsForSideCar() []str
 
 // NewSynchronizationParameters constructs a unified parameters context mapped from CRD into a format used by Mutator
 // the "env" parameter should be already a merged list of environment variables, with resolved `kind: Secret` objects into environment variables
-func NewSynchronizationParameters(pod *corev1.Pod, syncDefinition *v1alpha1.PodFilesystemSync, env map[string]string) SynchronizationParameters {
+func NewSynchronizationParameters(pod *corev1.Pod, syncDefinition *v1alpha1.PodFilesystemSync, env map[string]string) (SynchronizationParameters, error) {
 	uid := syncDefinition.Spec.SyncOptions.Permissions.UID
 	gid := syncDefinition.Spec.SyncOptions.Permissions.GID
 
@@ -102,9 +103,14 @@ func NewSynchronizationParameters(pod *corev1.Pod, syncDefinition *v1alpha1.PodF
 		envSecrets = append(envSecrets, secret.Name)
 	}
 
+	remotePath, resolveErr := syncDefinition.ResolveDirectoryForPod(pod)
+	if resolveErr != nil {
+		return SynchronizationParameters{}, errors.Wrap(resolveErr, "Cannot create synchronization parameters")
+	}
+
 	return SynchronizationParameters{
 		LocalPath:                syncDefinition.Spec.LocalPath,
-		RemotePath:               syncDefinition.Spec.RemotePath,
+		RemotePath:               remotePath,
 		SyncSchedule:             syncDefinition.Spec.SyncOptions.Schedule,
 		SyncMethod:               string(syncDefinition.Spec.SyncOptions.Method),
 		SyncMaxOneSyncPerMinutes: syncDefinition.Spec.SyncOptions.MaxOneSyncPerMinutes,
@@ -112,12 +118,12 @@ func NewSynchronizationParameters(pod *corev1.Pod, syncDefinition *v1alpha1.PodF
 		EnvSecrets:               envSecrets,
 		Debug:                    syncDefinition.Spec.Debug,
 
-		CleanUpRemote:      syncDefinition.Spec.CleanUp.Remote,
-		ForceCleanUpRemote: syncDefinition.Spec.CleanUp.ForceRemote,
-		CleanUpLocal:       syncDefinition.Spec.CleanUp.Local,
-		ForceCleanUpLocal:  syncDefinition.Spec.CleanUp.ForceLocal,
+		CleanUpRemote:      syncDefinition.Spec.SyncOptions.CleanUp.Remote,
+		ForceCleanUpRemote: syncDefinition.Spec.SyncOptions.CleanUp.ForceRemote,
+		CleanUpLocal:       syncDefinition.Spec.SyncOptions.CleanUp.Local,
+		ForceCleanUpLocal:  syncDefinition.Spec.SyncOptions.CleanUp.ForceLocal,
 
 		Owner: uid,
 		Group: gid,
-	}
+	}, nil
 }

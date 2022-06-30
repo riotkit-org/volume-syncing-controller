@@ -33,6 +33,14 @@ rules:
       verbs:
           - get
           - list
+
+    - apiGroups:
+          - "riotkit.org"
+      resources:
+          - podfilesystemsyncs/status
+      verbs:
+          - get
+          - list
           - create
           - update
           - delete

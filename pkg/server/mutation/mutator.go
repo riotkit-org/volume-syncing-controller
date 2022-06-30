@@ -1,16 +1,21 @@
 package mutation
 
 import (
+	goCtx "context"
 	"github.com/pkg/errors"
 	"github.com/riotkit-org/volume-syncing-operator/pkg/apis/riotkit.org/v1alpha1"
+	"github.com/riotkit-org/volume-syncing-operator/pkg/client/clientset/versioned"
 	"github.com/riotkit-org/volume-syncing-operator/pkg/server/cache"
 	"github.com/riotkit-org/volume-syncing-operator/pkg/server/context"
+	"github.com/sirupsen/logrus"
 	admissionv1 "k8s.io/api/admission/v1"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type PodMutator struct {
-	cache *cache.Cache
+	cache         *cache.Cache
+	riotkitClient *versioned.Clientset
 }
 
 // ProcessAdmissionRequest is retrieving all the required data, calling to resolve, then calling a mutation action
@@ -49,20 +54,60 @@ func (m *PodMutator) ProcessAdmissionRequest(review *admissionv1.AdmissionReview
 	if err := m.applyPatchToPod(pod, image, matchingPodFilesystemSync, env); err != nil {
 		return corev1.Pod{}, corev1.Pod{}, errors.Wrap(err, "Cannot mutate `kind: Pod`")
 	}
+
+	// change status
+	if claimErr := matchingPodFilesystemSync.ClaimDirectoryByPod(pod); claimErr != nil {
+		return corev1.Pod{}, corev1.Pod{}, errors.Wrap(claimErr, "Cannot claim directory for `kind: Pod`")
+	}
+	if err := m.updateStatus(matchingPodFilesystemSync); err != nil {
+		return corev1.Pod{}, corev1.Pod{}, err
+	}
+
 	return *pod, *originalPod, nil
+}
+
+// updateStatus is updating status field of a PodFilesystemSync object
+func (m *PodMutator) updateStatus(syncDefinition *v1alpha1.PodFilesystemSync) error {
+	logrus.Debug("Updating status")
+
+	client := m.riotkitClient.RiotkitV1alpha1().PodFilesystemSyncs(syncDefinition.Namespace)
+	clusterDefinition, getErr := client.Get(goCtx.TODO(), syncDefinition.Name, v1.GetOptions{})
+	if getErr != nil {
+		return errors.Wrap(getErr, "Cannot update status field - error retrieving object")
+	}
+
+	syncDefinition.SetResourceVersion(clusterDefinition.GetResourceVersion())
+	_, statusUpdateErr := client.UpdateStatus(
+		goCtx.TODO(), syncDefinition, v1.UpdateOptions{})
+	if statusUpdateErr != nil {
+		return errors.Wrap(statusUpdateErr, "Cannot update status field")
+	}
+	return nil
 }
 
 // applyPatchToPod is applying a patch to `kind: Pod` before it gets scheduled
 func (m *PodMutator) applyPatchToPod(pod *corev1.Pod, image string, syncDefinition *v1alpha1.PodFilesystemSync, env map[string]string) error {
-	mutationErr := MutatePodByInjectingInitContainer(pod, image, context.NewSynchronizationParameters(pod, syncDefinition, env))
+	params, paramsErr := context.NewSynchronizationParameters(pod, syncDefinition, env)
+	if paramsErr != nil {
+		return errors.Wrap(paramsErr, "Cannot create patch for `kind: Pod`")
+	}
+
+	// decide if we should start the init container with remote-to-local-sync
+	shouldRestoreFromRemoteOnInit, configErr := syncDefinition.ShouldRestoreFilesFromRemote(pod)
+	if configErr != nil {
+		return errors.Wrap(configErr, "Error creating patch for `kind: Pod` - cannot decide if the `kind: Pod` should restore files from remote on init")
+	}
+
+	mutationErr := MutatePodByInjectingContainers(pod, image, shouldRestoreFromRemoteOnInit, syncDefinition.ShouldSynchronizeToRemote(), params)
 	if mutationErr != nil {
 		return errors.Wrap(mutationErr, "Cannot patch `kind: Pod`")
 	}
 	return nil
 }
 
-func NewPodMutator(cache *cache.Cache) PodMutator {
+func NewPodMutator(cache *cache.Cache, riotkitClient *versioned.Clientset) PodMutator {
 	return PodMutator{
-		cache: cache,
+		cache:         cache,
+		riotkitClient: riotkitClient,
 	}
 }

@@ -1,3 +1,6 @@
 image:
     repository: 127.0.0.1:30050/volume-syncing-operator
     tag: snapshot
+
+env:
+    LOG_LEVEL: debug

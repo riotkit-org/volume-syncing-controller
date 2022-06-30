@@ -13,16 +13,15 @@ spec:
     remotePath: /stalin-was-a-dickhead
     debug: true
 
-    cleanUp:
-        remote: true
-        local: true
-
     syncOptions:
         method: "scheduler"
         schedule: "@every 1m"
         permissions:
             uid: "1001"
             gid: "1001"
+        cleanUp:
+            remote: true
+            local: true
     env:
         REMOTE_TYPE: s3
         REMOTE_PROVIDER: Minio

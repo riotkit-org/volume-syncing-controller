@@ -40,6 +40,7 @@ type PodFilesystemSyncsGetter interface {
 type PodFilesystemSyncInterface interface {
 	Create(ctx context.Context, podFilesystemSync *v1alpha1.PodFilesystemSync, opts v1.CreateOptions) (*v1alpha1.PodFilesystemSync, error)
 	Update(ctx context.Context, podFilesystemSync *v1alpha1.PodFilesystemSync, opts v1.UpdateOptions) (*v1alpha1.PodFilesystemSync, error)
+	UpdateStatus(ctx context.Context, podFilesystemSync *v1alpha1.PodFilesystemSync, opts v1.UpdateOptions) (*v1alpha1.PodFilesystemSync, error)
 	Delete(ctx context.Context, name string, opts v1.DeleteOptions) error
 	DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error
 	Get(ctx context.Context, name string, opts v1.GetOptions) (*v1alpha1.PodFilesystemSync, error)
@@ -128,6 +129,22 @@ func (c *podFilesystemSyncs) Update(ctx context.Context, podFilesystemSync *v1al
 		Namespace(c.ns).
 		Resource("podfilesystemsyncs").
 		Name(podFilesystemSync.Name).
+		VersionedParams(&opts, scheme.ParameterCodec).
+		Body(podFilesystemSync).
+		Do(ctx).
+		Into(result)
+	return
+}
+
+// UpdateStatus was generated because the type contains a Status member.
+// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
+func (c *podFilesystemSyncs) UpdateStatus(ctx context.Context, podFilesystemSync *v1alpha1.PodFilesystemSync, opts v1.UpdateOptions) (result *v1alpha1.PodFilesystemSync, err error) {
+	result = &v1alpha1.PodFilesystemSync{}
+	err = c.client.Put().
+		Namespace(c.ns).
+		Resource("podfilesystemsyncs").
+		Name(podFilesystemSync.Name).
+		SubResource("status").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Body(podFilesystemSync).
 		Do(ctx).

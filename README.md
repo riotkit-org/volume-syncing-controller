@@ -1,7 +1,7 @@
-volume-syncing-operator
-=======================
+volume-syncing-controller
+=========================
 
-Docker container and Kubernetes operator for periodically synchronizing volumes to cloud-native storage, and restoring their state from cloud-native storage.
+Docker container and Kubernetes controller for periodically synchronizing volumes to cloud-native storage, and restoring their state from cloud-native storage.
 
 **Features:**
 - [x] Supports all storage kinds that are supported by Rclone
@@ -10,11 +10,11 @@ Docker container and Kubernetes operator for periodically synchronizing volumes 
 - [x] Periodical synchronization with built-in cron-like scheduler
 - [x] `volume-syncing-operator sync-to-remote` command to synchronize local files to remote
 - [x] `volume-syncing-operator remote-to-local-sync` command to sync files back from remote to local
-- [ ] Support for Kubernetes: **initContainer** to `restore` files, and **side-car** to back up files to remote
+- [x] Support for Kubernetes: **initContainer** to `restore` files, and **side-car** to back up files to remote
 - [x] Extra security layer preventing from accidental file deletion in comparison to plain `rclone` or `rsync` usage :100:
 - [x] Non-root container
 - [ ] Periodical synchronization using filesystem events instead of cron-like scheduler (both should be available)
-- [ ] Go Templating support inside `kind: PodFilesystemSync` to allow using single definition for multiple `kind: Pod` objects
+- [x] Jinja2 templating support inside `kind: PodFilesystemSync` to allow using single definition for multiple `kind: Pod` objects
 - [ ] Termination hook to synchronize Pod before it gets terminated
 - [ ] Health check: If N-synchronization fails, then mark Pod as unhealthy
 - [ ] Allow to decide about the order of initContainer in CRD + annotation

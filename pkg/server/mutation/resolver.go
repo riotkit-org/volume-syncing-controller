@@ -1,17 +1,16 @@
 package mutation
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
+	"github.com/flosch/pongo2/v6"
 	"github.com/pkg/errors"
 	"github.com/riotkit-org/volume-syncing-operator/pkg/apis/riotkit.org/v1alpha1"
 	"github.com/riotkit-org/volume-syncing-operator/pkg/server/context"
 	"github.com/sirupsen/logrus"
 	admissionv1 "k8s.io/api/admission/v1"
 	corev1 "k8s.io/api/core/v1"
+	"sigs.k8s.io/json"
 	"strings"
-	"text/template"
 )
 
 func ResolvePod(a *admissionv1.AdmissionRequest) (*corev1.Pod, error) {
@@ -22,7 +21,11 @@ func ResolvePod(a *admissionv1.AdmissionRequest) (*corev1.Pod, error) {
 	logrus.Debugf("Processing request: %v", string(a.Object.Raw))
 
 	p := corev1.Pod{}
-	if err := json.Unmarshal(a.Object.Raw, &p); err != nil {
+	strictErrors, err := json.UnmarshalStrict(a.Object.Raw, &p)
+	if strictErrors != nil {
+		return nil, errors.Errorf("Cannot unmarshal, errors: %v", strictErrors)
+	}
+	if err != nil {
 		return nil, err
 	}
 
@@ -41,7 +44,6 @@ func ResolvePodFilesystemSync(a *admissionv1.AdmissionRequest) (*v1alpha1.PodFil
 	if a.Kind.Kind != "PodFilesystemSync" {
 		return nil, false, fmt.Errorf("only PodFilesystemSync definitions are supported here, got request type: %v", a.Kind.Kind)
 	}
-
 	// object could be CREATED/UPDATED or DELETED
 	var objectRaw []byte
 	var isAdded bool
@@ -53,13 +55,20 @@ func ResolvePodFilesystemSync(a *admissionv1.AdmissionRequest) (*v1alpha1.PodFil
 		isAdded = true
 	}
 
-	p := v1alpha1.PodFilesystemSync{}
-	if err := json.Unmarshal(objectRaw, &p); err != nil {
+	p := v1alpha1.NewPodFilesystemSync()
+	strictErrors, err := json.UnmarshalStrict(objectRaw, &p)
+	if strictErrors != nil {
+		return nil, false, errors.Errorf("Cannot unmarshal, errors: %v", strictErrors)
+	}
+	if err != nil {
 		return nil, isAdded, errors.Wrapf(err, "Cannot unmarshal request object: %v", a.Object.Raw)
 	}
 	if p.ObjectMeta.Namespace == "" && a.Namespace != "" {
 		p.ObjectMeta.Namespace = a.Namespace
 	}
+
+	logrus.Debugf("allowedDirections: %v", p.Spec.SyncOptions.AllowedDirections)
+
 	return &p, isAdded, nil
 }
 
@@ -100,20 +109,15 @@ func ResolveTemplatedEnvironment(pod *corev1.Pod, syncDefinition *v1alpha1.PodFi
 	return processed, nil
 }
 
-// processTemplate is replacing {{ }} syntax with real values
+// processTemplate is replacing {% %} syntax with real values
 func processTemplate(envString string, envName string, pod *corev1.Pod) (string, error) {
-	t, parseErr := template.New(envName).Parse(envString)
-	if parseErr != nil {
-		return "", parseErr
+	tmpl, templateErr := pongo2.FromString(envString)
+	if templateErr != nil {
+		return "", errors.Wrapf(templateErr, "Cannot render template '%s' for environment variable '%s' - parse error", envString, envName)
 	}
-
-	// variables accessible inside a template
-	insideVars := map[string]interface{}{}
-	insideVars["pod"] = pod
-
-	var tpl bytes.Buffer
-	if err := t.Execute(&tpl, insideVars); err != nil {
-		return "", err
+	out, err := tmpl.Execute(pongo2.Context{"pod": pod})
+	if err != nil {
+		return "", errors.Wrapf(err, "Cannot execute template '%v' for environment variable '%s' - evaluation error", envString, envName)
 	}
-	return tpl.String(), nil
+	return out, err
 }

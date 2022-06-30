@@ -45,7 +45,7 @@ func (c *EndpointServingService) ServeMutatePods(w http2.ResponseWriter, r *http
 		return
 	}
 
-	mutator := mutation.NewPodMutator(c.cache)
+	mutator := mutation.NewPodMutator(c.cache, c.riotkitClient)
 	patchedPod, originalPod, mutationErr := mutator.ProcessAdmissionRequest(review, c.image)
 
 	if mutationErr != nil {
@@ -74,6 +74,8 @@ func (c *EndpointServingService) ServeInformer(w http2.ResponseWriter, r *http2.
 		c.sendJsonResponse(CreateReviewResponse(review.Request, false, 400, parseErr.Error()), w)
 		return
 	}
+
+	logrus.Debugf("Got informer request: raw=%v, oldRaw=%v", string(review.Request.Object.Raw), string(review.Request.OldObject.Raw))
 
 	filesystemSync, isAdded, err := mutation.ResolvePodFilesystemSync(review.Request)
 	if err != nil {
