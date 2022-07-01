@@ -38,9 +38,16 @@ test_remote_to_local:
 	# then download into different directory
 	.build/volume-syncing-operator remote-to-local-sync -v -s testbucket -d ./.build/testing-restore -p 'type=s3' -p 'provider=Minio' -p 'access_key_id=AKIAIOSFODNN7EXAMPLE' -p 'secret_access_key = wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY' -p 'endpoint = http://localhost:9000' -p 'acl = private'
 
-test_k8s_1:
-	kubectl delete -f tests/.examples/minio-without-encryption-scheduler-permissions/sync.yaml || true
-	kubectl delete -f tests/.examples/minio-without-encryption-scheduler-permissions/pod.yaml || true
+
+test_k8s:
+	kubectl delete -f tests/.examples/${VARIANT}/sync.yaml || true
+	kubectl delete -f tests/.examples/${VARIANT}/pod.yaml || true
 	sleep 1
-	kubectl apply -f tests/.examples/minio-without-encryption-scheduler-permissions/sync.yaml
-	kubectl apply -f tests/.examples/minio-without-encryption-scheduler-permissions/pod.yaml
+	kubectl apply -f tests/.examples/${VARIANT}/sync.yaml
+	kubectl apply -f tests/.examples/${VARIANT}/pod.yaml
+
+test_k8s_without_encryption_scheduler_permissions:
+	make test_k8s VARIANT=minio-without-encryption-scheduler-permissions
+
+test_k8s_dynamic_directory_name:
+	make test_k8s VARIANT=with-dynamic-directory-name

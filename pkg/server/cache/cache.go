@@ -17,7 +17,7 @@ type Cache struct {
 }
 
 // Populate is fetching initially a list of existing objects before the application was started
-func (c *Cache) Populate(riotkitClient *versioned.Clientset, kubeClient *kubernetes.Clientset) error {
+func (c *Cache) Populate(riotkitClient versioned.Interface, kubeClient kubernetes.Interface) error {
 	c.specsIndexed = make(map[string]*v1alpha1.PodFilesystemSync)
 	ctx := context.TODO()
 
@@ -45,9 +45,9 @@ func (c *Cache) Populate(riotkitClient *versioned.Clientset, kubeClient *kuberne
 
 // Add adds element to cache, making sure it will not be duplicated
 func (c *Cache) Add(element *v1alpha1.PodFilesystemSync) {
-	logrus.Infof("[%s] Updating cache for '%s'", element.Namespace, element.Name)
 	indent := c.createCacheIdent(element)
-	c.specsIndexed[indent] = *&element
+	logrus.Infof("[%s] Updating cache for '%s' (indent=%s)", element.Namespace, element.Name, indent)
+	c.specsIndexed[indent] = element.DeepCopy()
 }
 
 // Delete is purging an element from cache
@@ -63,19 +63,20 @@ func (c *Cache) createCacheIdent(element *v1alpha1.PodFilesystemSync) string {
 	return fmt.Sprintf("%v_%v", element.Namespace, element.Name)
 }
 
-func (c *Cache) FindMatchingForPod(pod *corev1.Pod) (*v1alpha1.PodFilesystemSync, error, bool) {
+func (c *Cache) FindMatchingForPod(pod *corev1.Pod) (*v1alpha1.PodFilesystemSync, bool, error) {
 	var matched *v1alpha1.PodFilesystemSync
 	found := false
 
 	for _, definition := range c.specsIndexed {
-		if found {
-			return &v1alpha1.PodFilesystemSync{}, errors.New("ambiguous match. At least two `kind: PodFilesystemSync` objects are matching the same `kind: Pod` using PodSelector"), false
-		}
 		if definition.IsPodMatching(pod) {
+			if found {
+				return &v1alpha1.PodFilesystemSync{}, false, errors.Errorf("ambiguous match. At least two `kind: PodFilesystemSync` objects are matching the same `kind: Pod` using PodSelector. First: %v [%v], Second: %v [%v], Pod labels: %v", matched.Name, matched.Spec.PodSelector.String(), definition.Name, definition.Spec.PodSelector.String(), pod.Labels)
+			}
+
 			matched = definition
 			found = true
 		}
 	}
 
-	return matched, nil, found
+	return matched, found, nil
 }

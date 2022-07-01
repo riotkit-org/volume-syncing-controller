@@ -29,7 +29,7 @@ func (m *PodMutator) ProcessAdmissionRequest(review *admissionv1.AdmissionReview
 	originalPod := pod.DeepCopy()
 
 	// then retrieve a matching `kind: PodFilesystemSync` object to know how to set up synchronization for the `kind: Pod`
-	matchingPodFilesystemSync, matchingErr, matchedAny := m.cache.FindMatchingForPod(pod)
+	matchingPodFilesystemSync, matchedAny, matchingErr := m.cache.FindMatchingForPod(pod)
 	if matchingErr != nil {
 		return corev1.Pod{}, corev1.Pod{}, errors.Wrap(matchingErr, "Cannot match any `kind: PodFilesystemSync` for selected `kind: Pod`")
 	}

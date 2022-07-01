@@ -3,6 +3,7 @@ package context
 import (
 	"github.com/pkg/errors"
 	"github.com/riotkit-org/volume-syncing-operator/pkg/apis/riotkit.org/v1alpha1"
+	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -107,6 +108,7 @@ func NewSynchronizationParameters(pod *corev1.Pod, syncDefinition *v1alpha1.PodF
 	if resolveErr != nil {
 		return SynchronizationParameters{}, errors.Wrap(resolveErr, "Cannot create synchronization parameters")
 	}
+	logrus.Debug("Remote path: %s", remotePath)
 
 	return SynchronizationParameters{
 		LocalPath:                syncDefinition.Spec.LocalPath,

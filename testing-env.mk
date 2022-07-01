@@ -12,6 +12,7 @@ k3d@registry: k3d@make-sure
 
 k3d@minio: k3d@make-sure
 	helm repo add minio https://helm.min.io/
+	helm repo update minio
 	helm upgrade --install minio minio/minio --values ./tests/.helpers/local-minio.yaml --wait --timeout 2m0s
 
 k3d@publish-image: ## Publish to local Kubernetes registry

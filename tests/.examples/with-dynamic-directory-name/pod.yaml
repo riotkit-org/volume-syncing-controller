@@ -2,10 +2,12 @@
 apiVersion: v1
 kind: Pod
 metadata:
-    name: minio-without-encryption-scheduler-permissions
+    name: with-dynamic-directory-name
     labels:
         riotkit.org/volume-syncing-operator: "true"
-        my-pod-label: "test"
+        variant: "with-dynamic-directory-name"
+    annotations:
+        subdir: "lenin-too"
 spec:
     restartPolicy: Never
     automountServiceAccountToken: false

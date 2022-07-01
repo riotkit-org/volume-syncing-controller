@@ -148,6 +148,10 @@ func (in *PodFilesystemSyncSpec) getPodSelector() labels.Selector {
 
 // IsPodMatching is `kind: Pod` matching .spec.podSelector of `kind: PodFilesystemSync`?
 func (in *PodFilesystemSync) IsPodMatching(pod *v1.Pod) bool {
+	if in.Spec.getPodSelector().Empty() {
+		logrus.Warningf("Pod selector in PodFilesystemSync named '%s' is not limiting anything. Selector: %v", in.Name, in.Spec.getPodSelector().String())
+		return false
+	}
 	return in.Spec.getPodSelector().Matches(labels.Set(pod.Labels))
 }
 
