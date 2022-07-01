@@ -76,3 +76,59 @@ func TestPodFilesystemSync_WasAlreadySynchronized(t *testing.T) {
 	// check status if was populated
 	assert.Len(t, definition.Status.Locations, 1)
 }
+
+func TestPodFilesystemSync_ShouldRestoreFilesFromRemote_DisabledDirection(t *testing.T) {
+	testPod := v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "lenin-was-a-dickhead",
+			Namespace: "kronstadt",
+			Labels: map[string]string{
+				"riotkit.org/volume-syncing-operator": "true",
+				"variant":                             "with-dynamic-directory-name",
+			},
+		},
+	}
+
+	definition := PodFilesystemSync{}
+	definition.Spec.SyncOptions.AllowedDirections.FromRemote = false
+
+	result, err := definition.ShouldRestoreFilesFromRemote(&testPod)
+
+	assert.Nil(t, err)
+	assert.False(t, result)
+}
+
+func TestPodFilesystemSync_ShouldRestoreFilesFromRemote_WhenAlreadySynchronized(t *testing.T) {
+	// assumptions:
+	//   .Spec.SyncOptions.AllowedDirections.FromRemote = true
+	//   wasAlreadySynchronized = true (claimed)
+	//
+
+	definition := PodFilesystemSync{}
+	definition.Spec.SyncOptions.AllowedDirections.FromRemote = true
+	definition.Spec.RemotePath = "/lenin-was-a-dickhead"
+	assert.Nil(t, definition.ClaimDirectoryByPod(&v1.Pod{}))
+
+	result, err := definition.ShouldRestoreFilesFromRemote(&v1.Pod{})
+
+	assert.Nil(t, err)
+	assert.True(t, result)
+}
+
+func TestPodFilesystemSync_ShouldRestoreFilesFromRemote_NotSynchronizedButShouldBeRestoredAtStartup(t *testing.T) {
+	// assumptions:
+	//   .Spec.SyncOptions.AllowedDirections.FromRemote = true
+	//   .Spec.SyncOptions.RestoreRemoteOnFirstRun = true
+	//   wasAlreadySynchronized = false (no claim)
+	//
+
+	definition := PodFilesystemSync{}
+	definition.Spec.SyncOptions.AllowedDirections.FromRemote = true
+	definition.Spec.SyncOptions.RestoreRemoteOnFirstRun = true
+	definition.Spec.RemotePath = "/lenin-was-a-dickhead"
+
+	result, err := definition.ShouldRestoreFilesFromRemote(&v1.Pod{})
+
+	assert.Nil(t, err)
+	assert.True(t, result)
+}

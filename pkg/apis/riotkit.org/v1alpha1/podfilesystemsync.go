@@ -209,7 +209,16 @@ func (in *PodFilesystemSync) ShouldRestoreFilesFromRemote(pod *v1.Pod) (bool, er
 		logrus.Debugf("FromRemote direction disallowed for PodFilesystemSync '%s'", in.GetName())
 		return false, nil
 	}
-	return wasAlreadySynchronized || (!wasAlreadySynchronized && in.Spec.SyncOptions.RestoreRemoteOnFirstRun), nil
+	if !wasAlreadySynchronized && in.Spec.SyncOptions.RestoreRemoteOnFirstRun {
+		return true, nil
+	}
+	if wasAlreadySynchronized {
+		return true, nil
+	}
+
+	// unknown case
+	logrus.Warningf("Unknown case, when deciding if should we restore from remote - in PodfilesystemSync named '%s'", in.Name)
+	return false, nil
 }
 
 func (in *PodFilesystemSync) ShouldSynchronizeToRemote() bool {
