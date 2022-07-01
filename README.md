@@ -128,33 +128,56 @@ kind: PodFilesystemSync
 metadata:
     name: cloud-press
 spec:
-    # follows K8s convention: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#resources-that-support-set-based-requirements
+    # Follows K8s convention: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#resources-that-support-set-based-requirements
     podSelector:
         matchLabels:
             my-pod-label: test
 
     localPath: /var/www/riotkit/wp-content
-    remotePath: /example-org-bucket
-    
+    remotePath: /example-org-bucket          # Can be also a JINJA2 template with access to Pod. Example: '/stalin-was-a-dickhead/{{ pod.ObjectMeta.Annotations["subdir"] }}'
+
     syncOptions:
         # NOTICE: every next synchronization will be cancelled if previous one was not finished
         method: "scheduler"  # or "fsnotify"
         schedule: "@every 5m"
-        maxOneSyncPerMinutes: "15"  # if "fsnotify" used, then perform only max one sync per N minutes. Allows to decrease network/cpu/disk usage with a little risk factor
+        maxOneSyncPerMinutes: "15"  # When "fsnotify" used, then perform only max one sync per N minutes. Allows to decrease network/cpu/disk usage with a little risk factor
 
-        # optional "RunAs"
+        # Optional "RunAs"
         permissions:
-            # can be overridden by Pod annotation `riotkit.org/volume-user-id`
+            # Can be overridden by Pod annotation `riotkit.org/volume-user-id`
             uid: 1001
-            # can be overridden by Pod annotation `riotkit.org/volume-group-id`
+            # Can be overridden by Pod annotation `riotkit.org/volume-group-id`
             gid: 1001
+            
+        # Optional
+        cleanUp:
+            # Decides if files are synchronized or copied. Synchronization means that redundant files are deleted. 
+            # When in directory A you delete a file, then it gets deleted in directory B
+            remote: true
+            local: true
+
+            # Disables "security valves"
+            forceRemote: false    
+            forceLocal: false
+
+        # Optional
+        allowedDirectories:
+            # Decides if a side-car container should be spawned to synchronize changes periodically
+            toRemote: true
+            # Decides if an init container should be placed to restore files from remote on startup
+            fromRemote: true
+            
+        # Allows to decide on a case, when the directory is to be synchronized first time. 
+        # Should the initContainer be placed and restore from remote (it may be potentially empty if is new?), or should it be skipped first time?
+        # [!!!] This counts not for Pods, not for whole PodFilesystemSync but PER .spec.remotePath
+        restoreRemoteOnFirstRun: true
     env:
         REMOTE_TYPE: s3
         REMOTE_PROVIDER: Minio
         REMOTE_ENDPOINT: http://localhost:9000
         REMOTE_ACL: private
 
-        # best practice is to move sensitive information into `kind: Secret`
+        # Best practice is to move sensitive information into `kind: Secret`
         # and reference that secret in `envFromSecret`
         # to keep your secret in GIT you can try e.g. SealedSecrets or ExternalSecrets
         #REMOTE_ACCESS_KEY_ID: ...
@@ -162,8 +185,8 @@ spec:
     envFromSecret:
         - ref: cloud-press-secret-envs
 
-    # optional
-    # will generate a key, store it in `kind: Secret` and setup End-To-End encryption
+    # Optional
+    # Will generate a key, store it in `kind: Secret` and setup End-To-End encryption
     # if existing secret exists and is valid, then will be reused
     automaticEncryption:
         enabled: true

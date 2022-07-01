@@ -216,6 +216,8 @@ func (in *PodFilesystemSync) ShouldSynchronizeToRemote() bool {
 	return in.Spec.SyncOptions.AllowedDirections.ToRemote
 }
 
+// todo: Implement a watcher on a Pod to check if the synchronization successfully finished
+
 // ClaimDirectoryByPod mark target directory claimed by Pod as synchronized
 func (in *PodFilesystemSync) ClaimDirectoryByPod(pod *v1.Pod) error {
 	directory, err := in.ResolveDirectoryForPod(pod)

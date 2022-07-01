@@ -9,7 +9,7 @@ spec:
             variant: "with-dynamic-directory-name"
 
     localPath: /workspace/source
-    remotePath: '/stalin-was-a-dickhead/{{ pod.metadata.annotations["subdir"] }}'
+    remotePath: '/stalin-was-a-dickhead/{{ pod.ObjectMeta.Annotations["subdir"] }}'
     debug: true
 
     syncOptions:
