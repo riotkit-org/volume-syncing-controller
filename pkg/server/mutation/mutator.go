@@ -13,17 +13,15 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type PodMutator struct {
+type PodMutationController struct {
 	cache         *cache.Cache
 	riotkitClient *versioned.Clientset
 }
 
-// ProcessAdmissionRequest is retrieving all the required data, calling to resolve, then calling a mutation action
-func (m *PodMutator) ProcessAdmissionRequest(review *admissionv1.AdmissionReview, image string) (corev1.Pod, corev1.Pod, error) {
-	// retrieve `kind: Pod`
-	pod, podResolveErr := ResolvePod(review.Request)
+func (m *PodMutationController) parseRequestIntoModels(request *admissionv1.AdmissionRequest) (*corev1.Pod, *corev1.Pod, *v1alpha1.PodFilesystemSync, error) {
+	pod, podResolveErr := ResolvePod(request)
 	if podResolveErr != nil {
-		return corev1.Pod{}, corev1.Pod{}, errors.Wrap(podResolveErr, "Cannot process AdmissionRequest, cannot resolve Pod")
+		return &corev1.Pod{}, &corev1.Pod{}, &v1alpha1.PodFilesystemSync{}, errors.Wrap(podResolveErr, "Cannot process AdmissionRequest, cannot resolve Pod")
 	}
 
 	originalPod := pod.DeepCopy()
@@ -31,10 +29,20 @@ func (m *PodMutator) ProcessAdmissionRequest(review *admissionv1.AdmissionReview
 	// then retrieve a matching `kind: PodFilesystemSync` object to know how to set up synchronization for the `kind: Pod`
 	matchingPodFilesystemSync, matchedAny, matchingErr := m.cache.FindMatchingForPod(pod)
 	if matchingErr != nil {
-		return corev1.Pod{}, corev1.Pod{}, errors.Wrap(matchingErr, "Cannot match any `kind: PodFilesystemSync` for selected `kind: Pod`")
+		return &corev1.Pod{}, &corev1.Pod{}, &v1alpha1.PodFilesystemSync{}, errors.Wrap(matchingErr, "Cannot match any `kind: PodFilesystemSync` for selected `kind: Pod`")
 	}
 	if !matchedAny {
-		return corev1.Pod{}, corev1.Pod{}, errors.New("No matching `kind: PodFilesystemSync` found for Pod")
+		return &corev1.Pod{}, &corev1.Pod{}, &v1alpha1.PodFilesystemSync{}, errors.New("No matching `kind: PodFilesystemSync` found for Pod")
+	}
+
+	return pod, originalPod, matchingPodFilesystemSync, nil
+}
+
+// ProcessAdmissionRequest is retrieving all the required data, calling to resolve, then calling a mutation action
+func (m *PodMutationController) ProcessAdmissionRequest(review *admissionv1.AdmissionReview, image string) (corev1.Pod, corev1.Pod, error) {
+	pod, originalPod, matchingPodFilesystemSync, resolveErr := m.parseRequestIntoModels(review.Request)
+	if resolveErr != nil {
+		return corev1.Pod{}, corev1.Pod{}, resolveErr
 	}
 
 	// verify secrets
@@ -50,8 +58,13 @@ func (m *PodMutator) ProcessAdmissionRequest(review *admissionv1.AdmissionReview
 		return corev1.Pod{}, corev1.Pod{}, errors.Wrap(envResolveErr, "Cannot resolve environment variables")
 	}
 
+	params, paramsErr := context.NewSynchronizationParameters(pod, matchingPodFilesystemSync, env)
+	if paramsErr != nil {
+		return corev1.Pod{}, corev1.Pod{}, errors.Wrap(paramsErr, "Cannot create patch for `kind: Pod`")
+	}
+
 	// finally try to patch the `kind: Pod` using definition from `kind: PodFilesystemSync`
-	if err := m.applyPatchToPod(pod, image, matchingPodFilesystemSync, env); err != nil {
+	if err := m.applyPatchToPod(pod, image, matchingPodFilesystemSync, params); err != nil {
 		return corev1.Pod{}, corev1.Pod{}, errors.Wrap(err, "Cannot mutate `kind: Pod`")
 	}
 
@@ -67,7 +80,7 @@ func (m *PodMutator) ProcessAdmissionRequest(review *admissionv1.AdmissionReview
 }
 
 // updateStatus is updating status field of a PodFilesystemSync object
-func (m *PodMutator) updateStatus(syncDefinition *v1alpha1.PodFilesystemSync) error {
+func (m *PodMutationController) updateStatus(syncDefinition *v1alpha1.PodFilesystemSync) error {
 	logrus.Debug("Updating status")
 
 	client := m.riotkitClient.RiotkitV1alpha1().PodFilesystemSyncs(syncDefinition.Namespace)
@@ -86,12 +99,7 @@ func (m *PodMutator) updateStatus(syncDefinition *v1alpha1.PodFilesystemSync) er
 }
 
 // applyPatchToPod is applying a patch to `kind: Pod` before it gets scheduled
-func (m *PodMutator) applyPatchToPod(pod *corev1.Pod, image string, syncDefinition *v1alpha1.PodFilesystemSync, env map[string]string) error {
-	params, paramsErr := context.NewSynchronizationParameters(pod, syncDefinition, env)
-	if paramsErr != nil {
-		return errors.Wrap(paramsErr, "Cannot create patch for `kind: Pod`")
-	}
-
+func (m *PodMutationController) applyPatchToPod(pod *corev1.Pod, image string, syncDefinition *v1alpha1.PodFilesystemSync, params context.SynchronizationParameters) error {
 	// decide if we should start the init container with remote-to-local-sync
 	shouldRestoreFromRemoteOnInit, configErr := syncDefinition.ShouldRestoreFilesFromRemote(pod)
 	if configErr != nil {
@@ -105,8 +113,8 @@ func (m *PodMutator) applyPatchToPod(pod *corev1.Pod, image string, syncDefiniti
 	return nil
 }
 
-func NewPodMutator(cache *cache.Cache, riotkitClient *versioned.Clientset) PodMutator {
-	return PodMutator{
+func NewPodMutator(cache *cache.Cache, riotkitClient *versioned.Clientset) PodMutationController {
+	return PodMutationController{
 		cache:         cache,
 		riotkitClient: riotkitClient,
 	}
