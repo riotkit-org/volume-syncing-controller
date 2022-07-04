@@ -24,22 +24,32 @@ type Runner struct {
 
 // SyncToRemote invokes a "rclone sync" to remote destination
 func (r *Runner) SyncToRemote(localPath string, targetPath string) error {
-	return r.performFilesCopying("sync", localPath, r.getRemoteName()+":/"+strings.TrimLeft(targetPath, "/"))
+	return r.performFilesCopying("sync", localPath, r.buildRemotePath(targetPath))
 }
 
 // CopyToRemote invokes a "rclone copy" to remote destination
 func (r *Runner) CopyToRemote(localPath string, targetPath string) error {
-	return r.performFilesCopying("copy", localPath, r.getRemoteName()+":/"+strings.TrimLeft(targetPath, "/"))
+	return r.performFilesCopying("copy", localPath, r.buildRemotePath(targetPath))
 }
 
 // SyncFromRemote invokes a "rclone sync" to bring files back from remote storage
 func (r *Runner) SyncFromRemote(remotePath string, localTargetPath string) error {
-	return r.performFilesCopying("sync", r.getRemoteName()+":/"+strings.TrimLeft(remotePath, "/"), localTargetPath)
+	return r.performFilesCopying("sync", r.buildRemotePath(remotePath), localTargetPath)
 }
 
 // CopyFromRemote invokes a "rclone copy" to bring files back from remote storage
 func (r *Runner) CopyFromRemote(remotePath string, localTargetPath string) error {
-	return r.performFilesCopying("copy", r.getRemoteName()+":/"+strings.TrimLeft(remotePath, "/"), localTargetPath)
+	return r.performFilesCopying("copy", r.buildRemotePath(remotePath), localTargetPath)
+}
+
+func (r *Runner) buildRemotePath(remotePath string) string {
+	// encrypted remote wraps a remote that already points to a target directory
+	// so there in result we use root directory as we are already in a "chroot"
+	if r.Encryption {
+		return r.getRemoteName() + ":/"
+	}
+
+	return r.getRemoteName() + ":/" + strings.TrimLeft(remotePath, "/")
 }
 
 // performFilesCopying invokes a "rclone" command
@@ -111,6 +121,8 @@ func (r *Runner) getRemoteName() string {
 
 // createConfig is writing a configuration file required by "rclone" process
 func (r *Runner) createConfig() error {
+	logrus.Debug("Rendering config file...")
+
 	ini := "[remote]\n"
 
 	for _, param := range r.RemoteParams {

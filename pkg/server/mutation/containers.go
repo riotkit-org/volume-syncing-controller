@@ -75,8 +75,6 @@ func buildSecretRefs(envSecrets []string) []corev1.EnvFromSource {
 	var envFrom []corev1.EnvFromSource
 	for _, secretName := range envSecrets {
 		envFrom = append(envFrom, corev1.EnvFromSource{
-			Prefix:       "",
-			ConfigMapRef: nil,
 			SecretRef: &corev1.SecretEnvSource{
 				LocalObjectReference: corev1.LocalObjectReference{Name: secretName},
 			},

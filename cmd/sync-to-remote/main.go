@@ -26,7 +26,7 @@ func NewSyncToRemoteCommand() *cobra.Command {
 	}
 
 	command.Flags().StringVarP(&app.configPath, "config-path", "c", helpers.GetEnvOrDefault("CONFIG_PATH", "rclone.conf").(string), "rclone configuration path (specify together with --no-template to use already prepared config)")
-	command.Flags().BoolVarP(&noTemplate, "no-template", "", true, "Disables rendering of the rclone configuration file")
+	command.Flags().BoolVarP(&noTemplate, "no-template", "", false, "Disables rendering of the rclone configuration file")
 	command.Flags().StringVarP(&app.srcPath, "src", "s", "./", "Local path to copy files from")
 	command.Flags().StringVarP(&app.destPath, "dst", "d", "/", "Target path")
 	command.Flags().StringSliceVarP(&app.remoteParams, "param", "p", []string{}, "List of key=value settings for remote e.g. -p 'type=s3' -p 'provider=Minio' -p 'access_key_id=AKIAIOSFODNN7EXAMPLE'")

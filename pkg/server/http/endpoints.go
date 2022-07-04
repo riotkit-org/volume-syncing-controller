@@ -14,17 +14,17 @@ import (
 type EndpointServingService struct {
 	image string
 
-	riotkitClient *versioned.Clientset
-	client        *kubernetes.Clientset
-	cache         *cache.Cache
+	rktClient  versioned.Interface
+	kubeClient kubernetes.Interface
+	cache      *cache.Cache
 }
 
-func NewEndpointServingService(image string, riotkitClient *versioned.Clientset, client *kubernetes.Clientset, cache *cache.Cache) *EndpointServingService {
+func NewEndpointServingService(image string, r versioned.Interface, k kubernetes.Interface, cache *cache.Cache) *EndpointServingService {
 	return &EndpointServingService{
-		image:         image,
-		riotkitClient: riotkitClient,
-		client:        client,
-		cache:         cache,
+		image:      image,
+		rktClient:  r,
+		kubeClient: k,
+		cache:      cache,
 	}
 }
 
@@ -45,7 +45,7 @@ func (c *EndpointServingService) ServeMutatePods(w http2.ResponseWriter, r *http
 		return
 	}
 
-	mutator := mutation.NewPodMutator(c.cache, c.riotkitClient)
+	mutator := mutation.NewPodMutator(c.cache, c.rktClient, c.kubeClient)
 	patchedPod, originalPod, mutationErr := mutator.ProcessAdmissionRequest(review, c.image)
 
 	if mutationErr != nil {

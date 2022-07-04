@@ -188,6 +188,8 @@ spec:
     # Optional
     # Will generate a key, store it in `kind: Secret` and setup End-To-End encryption
     # if existing secret exists and is valid, then will be reused
+    #
+    # NOTICE: REMEMBER TO BACKUP THIS secret. End-To-End encryption means your data will be unreadable on the server
     automaticEncryption:
         enabled: true
         secretName: cloud-press-remote-sync

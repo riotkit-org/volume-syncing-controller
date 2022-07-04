@@ -23,7 +23,6 @@ type SyncToRemoteCommand struct {
 	remoteParams []string
 
 	// configuration for the encryption (if configured)
-	encrypt       bool
 	encryptParams []string
 }
 
@@ -43,11 +42,13 @@ func (c *SyncToRemoteCommand) sync() error {
 		RenderConfig:     c.renderConfig,
 		ConfigPath:       c.configPath,
 		RemoteParams:     c.remoteParams,
-		Encryption:       c.encrypt,
 		EncryptionParams: c.encryptParams,
 		Debug:            c.debug,
 	}
 
+	if len(c.encryptParams) > 0 {
+		runner.Encryption = true
+	}
 	if c.cleanUp {
 		if err := c.validate(); err != nil {
 			return errors.Wrap(err, "Error while trying to sync to remote")

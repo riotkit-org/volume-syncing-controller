@@ -1,0 +1,34 @@
+---
+apiVersion: riotkit.org/v1alpha1
+kind: PodFilesystemSync
+metadata:
+    name: with-encryption
+spec:
+    podSelector:
+        matchLabels:
+            variant: "with-encryption"
+
+    localPath: /workspace/source
+    remotePath: '/stalin-was-a-dickhead'
+    debug: true
+
+    syncOptions:
+        method: "scheduler"
+        schedule: "@every 1m"
+        permissions:
+            uid: "1001"
+            gid: "1001"
+        cleanUp:
+            remote: true
+            local: true
+    env:
+        REMOTE_TYPE: s3
+        REMOTE_PROVIDER: Minio
+        REMOTE_ENDPOINT: http://minio.default.svc.cluster.local:9000
+        REMOTE_ACCESS_KEY_ID: AKIAIOSFODNN7EXAMPLE
+        REMOTE_SECRET_ACCESS_KEY: wJaFuCKtnFEMI/CApItaliSM/bPxRfiCYEXAMPLEKEY
+        REMOTE_ACL: private
+
+    automaticEncryption:
+        enabled: true
+        secretName: my-secret-name

@@ -27,7 +27,6 @@ type Command struct {
 	remoteParams []string
 
 	// configuration for the encryption (if configured)
-	encryption       bool
 	encryptionParams []string
 }
 
@@ -47,11 +46,13 @@ func (c *Command) sync() error {
 		RenderConfig:     c.renderConfig,
 		ConfigPath:       c.configPath,
 		RemoteParams:     c.remoteParams,
-		Encryption:       c.encryption,
 		EncryptionParams: c.encryptionParams,
 		Debug:            c.debug,
 	}
 
+	if len(c.encryptionParams) > 0 {
+		runner.Encryption = true
+	}
 	if c.cleanUp {
 		if err := c.validateBeforeDelete(runner); err != nil {
 			return errors.Wrap(err, "Pre-delete validation failed")

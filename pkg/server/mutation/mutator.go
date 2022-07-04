@@ -7,15 +7,18 @@ import (
 	"github.com/riotkit-org/volume-syncing-operator/pkg/client/clientset/versioned"
 	"github.com/riotkit-org/volume-syncing-operator/pkg/server/cache"
 	"github.com/riotkit-org/volume-syncing-operator/pkg/server/context"
+	"github.com/riotkit-org/volume-syncing-operator/pkg/server/encryption"
 	"github.com/sirupsen/logrus"
 	admissionv1 "k8s.io/api/admission/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 )
 
 type PodMutationController struct {
-	cache         *cache.Cache
-	riotkitClient *versioned.Clientset
+	cache      *cache.Cache
+	rktClient  versioned.Interface
+	kubeClient kubernetes.Interface
 }
 
 func (m *PodMutationController) parseRequestIntoModels(request *admissionv1.AdmissionRequest) (*corev1.Pod, *corev1.Pod, *v1alpha1.PodFilesystemSync, error) {
@@ -58,9 +61,14 @@ func (m *PodMutationController) ProcessAdmissionRequest(review *admissionv1.Admi
 		return corev1.Pod{}, corev1.Pod{}, errors.Wrap(envResolveErr, "Cannot resolve environment variables")
 	}
 
+	// this context keeps decision about what synchronization options are to be used
 	params, paramsErr := context.NewSynchronizationParameters(pod, matchingPodFilesystemSync, env)
 	if paramsErr != nil {
 		return corev1.Pod{}, corev1.Pod{}, errors.Wrap(paramsErr, "Cannot create patch for `kind: Pod`")
+	}
+
+	if err := encryption.AttachAutomaticEncryption(matchingPodFilesystemSync, &params, m.kubeClient); err != nil {
+		return corev1.Pod{}, corev1.Pod{}, errors.Wrap(err, "Error while trying to setup automatic encryption")
 	}
 
 	// finally try to patch the `kind: Pod` using definition from `kind: PodFilesystemSync`
@@ -83,7 +91,7 @@ func (m *PodMutationController) ProcessAdmissionRequest(review *admissionv1.Admi
 func (m *PodMutationController) updateStatus(syncDefinition *v1alpha1.PodFilesystemSync) error {
 	logrus.Debug("Updating status")
 
-	client := m.riotkitClient.RiotkitV1alpha1().PodFilesystemSyncs(syncDefinition.Namespace)
+	client := m.rktClient.RiotkitV1alpha1().PodFilesystemSyncs(syncDefinition.Namespace)
 	clusterDefinition, getErr := client.Get(goCtx.TODO(), syncDefinition.Name, v1.GetOptions{})
 	if getErr != nil {
 		return errors.Wrap(getErr, "Cannot update status field - error retrieving object")
@@ -113,9 +121,10 @@ func (m *PodMutationController) applyPatchToPod(pod *corev1.Pod, image string, s
 	return nil
 }
 
-func NewPodMutator(cache *cache.Cache, riotkitClient *versioned.Clientset) PodMutationController {
+func NewPodMutator(cache *cache.Cache, r versioned.Interface, k kubernetes.Interface) PodMutationController {
 	return PodMutationController{
-		cache:         cache,
-		riotkitClient: riotkitClient,
+		cache:      cache,
+		rktClient:  r,
+		kubeClient: k,
 	}
 }

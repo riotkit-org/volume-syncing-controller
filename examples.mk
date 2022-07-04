@@ -51,3 +51,6 @@ test_k8s_without_encryption_scheduler_permissions:
 
 test_k8s_dynamic_directory_name:
 	make test_k8s VARIANT=with-dynamic-directory-name
+
+test_k8s_with_encryption:
+	make test_k8s VARIANT=with-encryption
