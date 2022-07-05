@@ -10,10 +10,8 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"io"
-	"log"
 )
 
 // crypt internals
@@ -60,39 +58,4 @@ func Obscure(x string) (string, error) {
 		return "", fmt.Errorf("encrypt failed: %w", err)
 	}
 	return base64.RawURLEncoding.EncodeToString(ciphertext), nil
-}
-
-// MustObscure obscures a value, exiting with a fatal error if it failed
-func MustObscure(x string) string {
-	out, err := Obscure(x)
-	if err != nil {
-		log.Fatalf("Obscure failed: %v", err)
-	}
-	return out
-}
-
-// Reveal an obscured value
-func Reveal(x string) (string, error) {
-	ciphertext, err := base64.RawURLEncoding.DecodeString(x)
-	if err != nil {
-		return "", fmt.Errorf("base64 decode failed when revealing password - is it obscured?: %w", err)
-	}
-	if len(ciphertext) < aes.BlockSize {
-		return "", errors.New("input too short when revealing password - is it obscured?")
-	}
-	buf := ciphertext[aes.BlockSize:]
-	iv := ciphertext[:aes.BlockSize]
-	if err := crypt(buf, buf, iv); err != nil {
-		return "", fmt.Errorf("decrypt failed when revealing password - is it obscured?: %w", err)
-	}
-	return string(buf), nil
-}
-
-// MustReveal reveals an obscured value, exiting with a fatal error if it failed
-func MustReveal(x string) string {
-	out, err := Reveal(x)
-	if err != nil {
-		log.Fatalf("Reveal failed: %v", err)
-	}
-	return out
 }

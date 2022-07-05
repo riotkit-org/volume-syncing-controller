@@ -7,6 +7,7 @@ import (
 	"github.com/riotkit-org/volume-syncing-operator/pkg/apis/riotkit.org/v1alpha1"
 	appContext "github.com/riotkit-org/volume-syncing-operator/pkg/server/context"
 	"github.com/sirupsen/logrus"
+	v12 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"math/big"
@@ -45,7 +46,7 @@ func generateSecretIfNotExists(kubeClient kubernetes.Interface, ns string, name 
 	secret, _ := secretApi.Get(context.TODO(), name, v1.GetOptions{})
 
 	// existing secret
-	if secret.Name == name {
+	if secret != nil && secret.Name == name {
 		if _, exists := secret.Data[appContext.SecretKeyNameForEncryption]; !exists {
 			generatedPassword, genErr := generateRclonePassword(64, 128)
 			if genErr != nil {
@@ -64,6 +65,7 @@ func generateSecretIfNotExists(kubeClient kubernetes.Interface, ns string, name 
 			return errors.Wrap(genErr, "The secret does not exist, or is invalid. Attempted to generate a new one, but got an error. Maybe not enough entropy?")
 		}
 
+		secret = &v12.Secret{}
 		secret.Name = name
 		secret.Namespace = ns
 		secret.StringData = map[string]string{
