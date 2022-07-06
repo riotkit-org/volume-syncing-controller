@@ -24,9 +24,6 @@ jobs:
               with:
                   fetch-depth: 0
 
-            - name: Setup rclone
-              run: "docker build . -f github-actions.rclone.Dockerfile -t rclone:current > /dev/null; docker create --name rclone rclone:current > /dev/null; sudo docker cp rclone:/usr/local/bin/rclone /usr/bin/rclone"
-
             - name: Build
               run: "make build-binary"  # todo: change to make build?
 
@@ -65,6 +62,9 @@ jobs:
               uses: actions/checkout@v3
               with:
                   fetch-depth: 0
+
+            - name: Setup rclone
+              run: "docker build . -f github-actions.rclone.Dockerfile -t rclone:current > /dev/null; docker create --name rclone rclone:current > /dev/null; sudo docker cp rclone:/usr/local/bin/rclone /usr/bin/rclone"
 
             - name: Run E2E tests
               run: "make setup_e2e test_k8s test"
