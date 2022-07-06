@@ -1,5 +1,9 @@
 .PHONY: test
+
+# <test pipelines>
 test: test_sync_without_encryption test_sync_using_envs test_remote_to_local
+test_k8s: test_k8s_without_encryption_scheduler_permissions test_k8s_dynamic_directory_name test_k8s_with_encryption
+# <end of test pipelines>
 
 #
 # Uses commandline switches to configure rclone
@@ -39,7 +43,7 @@ test_remote_to_local:
 	.build/volume-syncing-operator remote-to-local-sync -v -s testbucket -d ./.build/testing-restore -p 'type=s3' -p 'provider=Minio' -p 'access_key_id=AKIAIOSFODNN7EXAMPLE' -p 'secret_access_key = wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY' -p 'endpoint = http://localhost:9000' -p 'acl = private'
 
 
-test_k8s:
+_test_k8s_variant:
 	kubectl delete -f tests/.examples/${VARIANT}/sync.yaml || true
 	kubectl delete -f tests/.examples/${VARIANT}/pod.yaml || true
 	sleep 1
@@ -47,10 +51,10 @@ test_k8s:
 	kubectl apply -f tests/.examples/${VARIANT}/pod.yaml
 
 test_k8s_without_encryption_scheduler_permissions:
-	make test_k8s VARIANT=minio-without-encryption-scheduler-permissions
+	make _test_k8s_variant VARIANT=minio-without-encryption-scheduler-permissions
 
 test_k8s_dynamic_directory_name:
-	make test_k8s VARIANT=with-dynamic-directory-name
+	make _test_k8s_variant VARIANT=with-dynamic-directory-name
 
 test_k8s_with_encryption:
-	make test_k8s VARIANT=with-encryption
+	make _test_k8s_variant VARIANT=with-encryption
