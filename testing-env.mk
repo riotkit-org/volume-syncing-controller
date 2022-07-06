@@ -7,7 +7,7 @@ k3d@cluster: ## Run local empty Kubernetes cluster
 
 k3d@registry: k3d@make-sure
 	helm repo add twuni https://helm.twun.io
-	helm upgrade --install registry twuni/docker-registry -n default --set ingress.enabled=true --set ingress.hosts[0]=registry.ingress.cluster.local -wait --timeout 2m0s
+	helm upgrade --install registry twuni/docker-registry -n default --set ingress.enabled=true --set ingress.hosts[0]=registry.ingress.cluster.local --wait --timeout 2m0s
 	kubectl apply -f tests/.helpers/local-registry.yaml
 
 k3d@minio: k3d@make-sure

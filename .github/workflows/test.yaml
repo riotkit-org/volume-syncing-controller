@@ -74,7 +74,7 @@ jobs:
 
     release-binary:
         runs-on: ubuntu-20.04
-        needs: ["test-and-build"]
+        needs: ["test-and-build", "test-e2e"]
         if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
         steps:
             - uses: actions/download-artifact@v3
