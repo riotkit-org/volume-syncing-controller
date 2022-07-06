@@ -20,12 +20,11 @@ k3d@publish-image: ## Publish to local Kubernetes registry
 	docker push ${DEV_LOCAL_IMAGE_REPOSITORY}:snapshot
 
 k3d@deploy: k3d@make-sure
-	cd helm/${CHART_NAME} && helm upgrade --install vso . --values ../../tests/.helpers/local-release.values.yaml --debug
+	cd helm/${CHART_NAME} && helm upgrade --install vso . --values ../../tests/.helpers/local-release.values.yaml --debug --wait --timeout 30s
 
 k3d@release: k3d@make-sure
 	kubectl delete deployment vso-volume-syncing-operator || true
 	make build-binary k3d@publish-image k3d@deploy
-	sleep 5; kubectl logs -f deployment/vso-volume-syncing-operator
 
 k3d@template:
 	cd helm/${CHART_NAME} && helm template vso . --values ../../tests/.helpers/local-release.values.yaml --debug
