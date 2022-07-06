@@ -108,7 +108,7 @@ func NewSynchronizationParameters(pod *corev1.Pod, syncDefinition *v1alpha1.PodF
 	if resolveErr != nil {
 		return SynchronizationParameters{}, errors.Wrap(resolveErr, "Cannot create synchronization parameters")
 	}
-	logrus.Debug("Remote path: %s", remotePath)
+	logrus.Debugf("Remote path: %s", remotePath)
 
 	return SynchronizationParameters{
 		LocalPath:                syncDefinition.Spec.LocalPath,
