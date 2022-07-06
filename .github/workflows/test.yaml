@@ -90,7 +90,7 @@ jobs:
 
     release-docker:
         runs-on: ubuntu-20.04
-        needs: ["test-and-build"]
+        needs: ["release-binary"]
         if: contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
         steps:
             - name: Checkout
