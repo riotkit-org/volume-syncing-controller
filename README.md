@@ -14,20 +14,23 @@ Docker container and Kubernetes controller for periodically synchronizing volume
 - [x] Extra security layer preventing from accidental file deletion in comparison to plain `rclone` or `rsync` usage :100:
 - [x] Non-root container
 - [x] Allow to disable synchronization or restore in CRD
-- [ ] Allow to decide about the order of initContainer in CRD + annotation
 - [x] Jinja2 templating support inside `kind: PodFilesystemSync` to allow using single definition for multiple `kind: Pod` objects
 - [x] Termination hook to synchronize Pod before it gets terminated
+- [ ] Allow to decide about the order of initContainer in CRD + annotation
 - [ ] Health check: If N-synchronization fails, then mark Pod as unhealthy (optionally)
 - [ ] Periodical synchronization using filesystem events instead of cron-like scheduler (both should be available)
 
 
-Kubernetes operator architecture
---------------------------------
+Kubernetes controller architecture
+----------------------------------
 
 The solution architecture is designed to be Pod-centric and live together with the application, not on the underlying infrastructural level.
 
 Above means, that when Pod starts - the volume is **restored from remote**, then all data is **synchronized to remote periodically** during Pod lifetime to keep an external storage up-to-date.
 
+There are added two containers:
+- **init-volume-restore** (initContainer - executes before application starts)
+- **volume-syncing-sidecar** (sidecar - lives together with application)
 
 Runtime compatibility
 ---------------------
