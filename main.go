@@ -11,7 +11,7 @@ func main() {
 	command := cmd.Main()
 	args := prepareArgs(os.Args)
 
-	if args != nil && args[1] != "serve" {
+	if args != nil && len(args) > 1 && args[1] != "serve" {
 		args = args[1:]
 		command.SetArgs(args)
 	}
