@@ -25,7 +25,7 @@ spec:
               refreshImageTag: "{{- randAlphaNum 24 | nospace -}}"
               {{- end }}
         spec:
-            terminationGracePeriodSeconds: 5
+            terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
             serviceAccountName: {{ .Values.serviceAccount.name }}
             {{- with .Values.podSecurityContext }}
             securityContext:

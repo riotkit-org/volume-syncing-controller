@@ -14,19 +14,19 @@ func MutatePodByInjectingContainers(pod *corev1.Pod, image string, preSynchroniz
 
 	if preSynchronizeFromRemoteOnStart && !hasInitContainer(pod) {
 		nLogger.Infof("`kind: Pod` '%s' has no initContainer present", pod.ObjectMeta.Name)
-		pod.Spec.InitContainers = append(pod.Spec.InitContainers, createContainer(context.InitContainerName, pod, image, params, params.CreateCommandlineArgumentsForInitContainer()))
+		pod.Spec.InitContainers = append(pod.Spec.InitContainers, createContainer(true, context.InitContainerName, pod, image, params, params.CreateCommandlineArgumentsForInitContainer()))
 	}
 
 	if canSynchronizeToRemote && !hasSideCar(pod) {
 		nLogger.Infof("`kind: Pod` '%s' has no side car present", pod.ObjectMeta.Name)
-		pod.Spec.Containers = append(pod.Spec.Containers, createContainer(context.SideCarName, pod, image, params, params.CreateCommandlineArgumentsForSideCar()))
+		pod.Spec.Containers = append(pod.Spec.Containers, createContainer(false, context.SideCarName, pod, image, params, params.CreateCommandlineArgumentsForSideCar()))
 	}
 
 	return nil
 }
 
 // createContainer injects an initContainer
-func createContainer(containerName string, pod *corev1.Pod, image string, params context.SynchronizationParameters, commandlineArgs []string) corev1.Container {
+func createContainer(isInitContainer bool, containerName string, pod *corev1.Pod, image string, params context.SynchronizationParameters, commandlineArgs []string) corev1.Container {
 	container := corev1.Container{
 		Name:         containerName,
 		Image:        image,
@@ -38,6 +38,18 @@ func createContainer(containerName string, pod *corev1.Pod, image string, params
 		VolumeMounts: mergeVolumeMounts(pod.Spec.Containers, params.LocalPath),
 		// VolumeDevices:            nil,
 		ImagePullPolicy: "Always",
+
+		// lifecycle hook allows to perform a last synchronization before the Pod will be terminated
+	}
+
+	if !isInitContainer {
+		container.Lifecycle = &corev1.Lifecycle{
+			PreStop: &corev1.LifecycleHandler{
+				Exec: &corev1.ExecAction{
+					Command: []string{"/usr/bin/volume-syncing-operator", "interrupt"},
+				},
+			},
+		}
 	}
 
 	// run container as specified user to operate on volume with given permissions

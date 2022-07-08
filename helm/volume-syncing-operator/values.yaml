@@ -2,6 +2,7 @@
 # work only inside namespaces that are labelled with `riotkit.org/volume-syncing-operator: "true"`
 onlyLabelledNamespaces: false
 
+terminationGracePeriodSeconds: 5
 podAnnotations: {}
 podLabels: {}
 env: {}

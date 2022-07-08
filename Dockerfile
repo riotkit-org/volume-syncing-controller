@@ -9,10 +9,10 @@ FROM rclone/rclone:1.58.1 as rcloneSrc
 # ================
 FROM alpine:3.16 AS workspaceBuilder
 
-RUN mkdir -p /etc/volume-syncing-operator /mnt \
-    && chown 65312:65312 /etc/volume-syncing-operator /mnt \
-    && touch /etc/volume-syncing-operator/rclone.conf \
-    && chmod -R 777 /etc/volume-syncing-operator /mnt
+RUN mkdir -p /etc/volume-syncing-operator /mnt /run \
+    && touch /etc/volume-syncing-operator/rclone.conf /run/volume-syncing-operator.pid \
+    && chown -R 65312:65312 /etc/volume-syncing-operator /mnt /run \
+    && chmod -R 777 /etc/volume-syncing-operator /mnt /run
 
 
 # =========================
@@ -26,6 +26,7 @@ COPY --from=rcloneSrc /usr/local/bin/rclone /usr/bin/rclone
 COPY ./.build/volume-syncing-operator /usr/bin/volume-syncing-operator
 # copy a directory with prepared permissions
 COPY --from=workspaceBuilder /etc/volume-syncing-operator /etc/volume-syncing-operator
+COPY --from=workspaceBuilder /run /run
 
 ENV REMOTE_TYPE="s3"
 ENV PATH="/usr/bin"
