@@ -35,6 +35,7 @@ func NewSyncToRemoteCommand() *cobra.Command {
 	command.Flags().BoolVarP(&noDelete, "no-delete", "x", true, "Don't delete files in remote filesystem (may be dangerous if wrong path specified)")
 	command.Flags().BoolVarP(&app.ForceSync, "force-even-if-remote-would-be-cleared", "f", true, "Force synchronize, even if it would mean to remove all files from remote")
 	command.Flags().BoolVarP(&app.debug, "verbose", "v", true, "Increase verbosity")
+	command.Flags().StringVarP(&app.pidPath, "pid-path", "", "/run/volume-syncing-operator.pid", "PID path")
 
 	return command
 }

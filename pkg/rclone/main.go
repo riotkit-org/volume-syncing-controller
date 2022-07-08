@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+var ErrAlreadyRunning = errors.New("rclone is already running")
+
 type Runner struct {
 	RenderConfig bool
 	ConfigPath   string
@@ -19,7 +21,8 @@ type Runner struct {
 	Encryption       bool
 	EncryptionParams []string
 
-	Debug bool
+	Debug     bool
+	isRunning bool
 }
 
 // SyncToRemote invokes a "rclone sync" to remote destination
@@ -54,6 +57,13 @@ func (r *Runner) buildRemotePath(remotePath string) string {
 
 // performFilesCopying invokes a "rclone" command
 func (r *Runner) performFilesCopying(action string, from string, to string) error {
+	if r.isRunning {
+		return ErrAlreadyRunning
+	}
+
+	r.isRunning = true
+	defer func() { r.isRunning = false }()
+
 	logrus.Infof("Performing %s from '%s' to '%s'", action, from, to)
 
 	if r.RenderConfig {

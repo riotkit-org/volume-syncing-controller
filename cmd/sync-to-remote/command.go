@@ -5,6 +5,7 @@ import (
 	"github.com/riotkit-org/volume-syncing-operator/pkg/cron"
 	"github.com/riotkit-org/volume-syncing-operator/pkg/helpers"
 	"github.com/riotkit-org/volume-syncing-operator/pkg/rclone"
+	"github.com/riotkit-org/volume-syncing-operator/pkg/signalling"
 	"github.com/sirupsen/logrus"
 )
 
@@ -15,6 +16,7 @@ type SyncToRemoteCommand struct {
 	ForceSync           bool
 	cleanUp             bool
 	debug               bool
+	pidPath             string
 
 	srcPath  string
 	destPath string
@@ -28,12 +30,18 @@ type SyncToRemoteCommand struct {
 
 // Sync is running "rclone sync" to perform a synchronization of local files to remote destination
 func (c *SyncToRemoteCommand) Sync() error {
+	scheduler := cron.Scheduler{}
+
 	if c.SchedulerExpression != "" {
-		scheduler := cron.Scheduler{}
+		if err := signalling.SetupInterruptSignal(&scheduler, func() error { return c.sync() }, c.pidPath); err != nil {
+			return err
+		}
+
 		return scheduler.SetupCron(c.SchedulerExpression, func() error {
 			return c.sync()
 		})
 	}
+
 	return c.sync()
 }
 

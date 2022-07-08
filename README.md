@@ -13,12 +13,13 @@ Docker container and Kubernetes controller for periodically synchronizing volume
 - [x] Support for Kubernetes: **initContainer** to `restore` files, and **side-car** to back up files to remote
 - [x] Extra security layer preventing from accidental file deletion in comparison to plain `rclone` or `rsync` usage :100:
 - [x] Non-root container
-- [ ] Periodical synchronization using filesystem events instead of cron-like scheduler (both should be available)
-- [x] Jinja2 templating support inside `kind: PodFilesystemSync` to allow using single definition for multiple `kind: Pod` objects
-- [ ] Termination hook to synchronize Pod before it gets terminated
-- [ ] Health check: If N-synchronization fails, then mark Pod as unhealthy
+- [x] Allow to disable synchronization or restore in CRD
 - [ ] Allow to decide about the order of initContainer in CRD + annotation
-- [ ] Allow to disable synchronization or restore in CRD + annotation
+- [x] Jinja2 templating support inside `kind: PodFilesystemSync` to allow using single definition for multiple `kind: Pod` objects
+- [x] Termination hook to synchronize Pod before it gets terminated
+- [ ] Health check: If N-synchronization fails, then mark Pod as unhealthy (optionally)
+- [ ] Periodical synchronization using filesystem events instead of cron-like scheduler (both should be available)
+
 
 Kubernetes operator architecture
 --------------------------------
@@ -194,3 +195,13 @@ spec:
         enabled: true
         secretName: cloud-press-remote-sync
 ```
+
+SIGTERM support
+---------------
+
+Pod's sidecar container named `init-volume-restore` is having implemented a signal handling. 
+When Kubernetes wants to terminate our Pod, then a `volume-syncing-controller interrupt` command is invoked, next it sends a kill signal to the `volume-syncing-controller` main process.
+
+`volume-syncing-controller` main process is stopping the cron-like scheduler and invokes last synchronization to remote before exit.
+
+You may want to adjust your Pod's `terminationGracePeriodSeconds` to a value that makes sure the Kubernetes will wait longer before terminating containers.

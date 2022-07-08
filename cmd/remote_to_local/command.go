@@ -6,6 +6,7 @@ import (
 	"github.com/riotkit-org/volume-syncing-operator/pkg/cron"
 	"github.com/riotkit-org/volume-syncing-operator/pkg/helpers"
 	"github.com/riotkit-org/volume-syncing-operator/pkg/rclone"
+	"github.com/riotkit-org/volume-syncing-operator/pkg/signalling"
 	"github.com/sirupsen/logrus"
 	"os"
 	"strings"
@@ -19,6 +20,7 @@ type Command struct {
 	cleanUp             bool
 	forceCleanUp        bool
 	debug               bool
+	pidPath             string
 
 	srcPath       string
 	destLocalPath string
@@ -34,6 +36,10 @@ type Command struct {
 func (c *Command) Sync() error {
 	if c.SchedulerExpression != "" {
 		scheduler := cron.Scheduler{}
+		if err := signalling.SetupInterruptSignal(&scheduler, func() error { return c.sync() }, c.pidPath); err != nil {
+			return err
+		}
+
 		return scheduler.SetupCron(c.SchedulerExpression, func() error {
 			return c.sync()
 		})
