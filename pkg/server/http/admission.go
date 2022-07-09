@@ -17,6 +17,10 @@ func ParseAdmissionRequest(r *http.Request) (*admissionv1.AdmissionReview, error
 			r.Header.Get("Content-Type"), "application/json")
 	}
 
+	if r.Body == nil {
+		return nil, fmt.Errorf("admission request body is empty")
+	}
+
 	bodybuf := new(bytes.Buffer)
 	bodybuf.ReadFrom(r.Body)
 	body := bodybuf.Bytes()
