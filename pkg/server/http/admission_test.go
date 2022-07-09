@@ -60,7 +60,7 @@ func TestParseAdmissionRequest_InvalidContentType(t *testing.T) {
 
 	r := http.Request{}
 	r.Header = http.Header{}
-	r.Header.Set("Content-Type", "application/html")
+	r.Header.Set("Content-Type", "application/html") // there, not an application/json
 	r.Body = ioutil.NopCloser(strings.NewReader(string(fakeB)))
 
 	_, parseErr := ParseAdmissionRequest(&r)
@@ -71,6 +71,7 @@ func TestParseAdmissionRequest_InvalidBody(t *testing.T) {
 	r := http.Request{}
 	r.Header = http.Header{}
 	r.Header.Set("Content-Type", "application/json")
+	// there, no body set at all
 
 	_, parseErr := ParseAdmissionRequest(&r)
 	assert.NotNil(t, parseErr)
@@ -80,7 +81,7 @@ func TestParseAdmissionRequest_EmptyBody(t *testing.T) {
 	r := http.Request{}
 	r.Header = http.Header{}
 	r.Header.Set("Content-Type", "application/html")
-	r.Body = ioutil.NopCloser(strings.NewReader(""))
+	r.Body = ioutil.NopCloser(strings.NewReader("")) // there, empty body
 
 	_, parseErr := ParseAdmissionRequest(&r)
 	assert.NotNil(t, parseErr)
@@ -90,7 +91,7 @@ func TestParseAdmissionRequest_MisFormattedBody(t *testing.T) {
 	r := http.Request{}
 	r.Header = http.Header{}
 	r.Header.Set("Content-Type", "application/html")
-	r.Body = ioutil.NopCloser(strings.NewReader("invalid-formatting-there-not-a-json"))
+	r.Body = ioutil.NopCloser(strings.NewReader("invalid-formatting-there-not-a-json")) // there, not a Michael JSON
 
 	_, parseErr := ParseAdmissionRequest(&r)
 	assert.NotNil(t, parseErr)
