@@ -3,7 +3,10 @@ volume-syncing-controller
 
 Docker container and Kubernetes controller for periodically synchronizing volumes to cloud-native storage, and restoring their state from cloud-native storage.
 
-**Features:**
+Roadmap
+-------
+
+**Features for first version:**
 - [x] Supports all storage kinds that are supported by Rclone
 - [x] Rclone configuration using environment variables
 - [x] End-To-End encryption support
@@ -17,6 +20,8 @@ Docker container and Kubernetes controller for periodically synchronizing volume
 - [x] Jinja2 templating support inside `kind: PodFilesystemSync` to allow using single definition for multiple `kind: Pod` objects
 - [x] Termination hook to synchronize Pod before it gets terminated
 - [ ] Allow to decide about the order of initContainer in CRD + annotation
+
+**v1.1:**
 - [ ] Health check: If N-synchronization fails, then mark Pod as unhealthy (optionally)
 - [ ] Periodical synchronization using filesystem events instead of cron-like scheduler (both should be available)
 
