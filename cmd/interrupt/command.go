@@ -34,7 +34,7 @@ func (c *Command) Run() error {
 
 	signalErr := process.Signal(syscall.SIGTERM)
 	if signalErr != nil {
-		return errors.Wrapf(signalErr, "Cannot kill process with pid '%s'", pid)
+		return errors.Wrapf(signalErr, "Cannot kill process with pid '%v'", pid)
 	}
 
 	return nil
