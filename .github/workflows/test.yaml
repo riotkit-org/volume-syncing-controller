@@ -70,7 +70,7 @@ jobs:
               run:  "sudo wget https://github.com/k3d-io/k3d/releases/download/v5.4.3/k3d-linux-amd64 -O /usr/bin/k3d; sudo chmod +x /usr/bin/k3d"
 
             - name: Run E2E tests
-              run: "make setup_e2e test_k8s test"
+              run: "make setup_e2e test_k8s minio test"
 
     release-binary:
         runs-on: ubuntu-20.04
