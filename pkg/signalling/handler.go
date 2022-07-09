@@ -23,7 +23,7 @@ func SetupInterruptSignal(scheduler *cron.Scheduler, sync func() error, pidPath 
 	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-ch
-		logrus.Info("Received INTERRUPT signal, disabling scheduling and performing last synchronization")
+		logrus.Info("Received INTERRUPT signal, disabling scheduler and performing last synchronization")
 
 		scheduler.LockFromSchedulingNextIterations()
 		syncErr := sync()
