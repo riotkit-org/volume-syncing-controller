@@ -12,6 +12,9 @@ import (
 // +kubebuilder:validation:Enum=scheduler;fsnotify
 type ChangesWatchingMethod string
 
+// +kubebuilder:validation:Enum=before;after;first;last
+type ContainerPlacement string
+
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +kubebuilder:object:root=true
@@ -48,6 +51,9 @@ func NewPodFilesystemSync() PodFilesystemSync {
 			},
 			AutomaticEncryption: AutomaticEncryptionSpec{
 				Enabled: false,
+			},
+			InitContainerPlacement: InitContainerPlacementSpec{
+				Placement: "last",
 			},
 			Debug: false,
 		},
@@ -97,6 +103,25 @@ type SyncOptionsSpec struct {
 	AllowedDirections AllowedDirectionsSpec `json:"allowedDirections,omitempty"`
 }
 
+// InitContainerPlacementSpec allows to define, where initContainer should be placed
+type InitContainerPlacementSpec struct {
+	ContainerReference string             `json:"containerReference,omitempty"`
+	Placement          ContainerPlacement `json:"placement,omitempty"`
+}
+
+func (ic *InitContainerPlacementSpec) Validate() error {
+	if (ic.Placement == "before" || ic.Placement == "after") && ic.ContainerReference == "" {
+		return errors.Errorf("Cannot place container as '%s' to unknown container, when containerReference is not specified. Specify .spec.initContainerPlacement.containerReference", ic.Placement)
+	}
+	if (ic.Placement == "last" || ic.Placement == "first") && ic.ContainerReference != "" {
+		return errors.Errorf("Cannot specify .spec.initContainerPlacement.containerReference together with '%v'", ic.Placement)
+	}
+	if ic.Placement != "last" && ic.Placement != "first" && ic.Placement != "before" && ic.Placement != "after" {
+		return errors.Errorf(".spec.initContainerPlacement.Placement is not one of: last, first, before, after")
+	}
+	return nil
+}
+
 // PermissionsSpec defines permissions to files inside Pod, to be able to run as non-root
 type PermissionsSpec struct {
 	UID string `json:"uid,omitempty"`
@@ -110,7 +135,8 @@ type PodFilesystemSyncSpec struct {
 	LocalPath  string `json:"localPath"`
 	RemotePath string `json:"remotePath"`
 
-	SyncOptions SyncOptionsSpec `json:"syncOptions"`
+	SyncOptions            SyncOptionsSpec            `json:"syncOptions"`
+	InitContainerPlacement InitContainerPlacementSpec `json:"initContainerPlacement"`
 
 	// use environment to configure remotes and encryption
 	// values can contain Go-Template syntax e.g. {{ .pod.metadata.labels["some-label"] }}
@@ -164,9 +190,9 @@ type LocationStatus struct {
 	SynchronizedToRemote bool   `json:"synchronizedToRemote"`
 }
 
-// ResolveDirectoryForPod is building remote path that will be used for given Pod. Depending on the configuration the `.Spec.RemotePath` may be a JINJA2 template
+// ResolveRemoteDirectoryForPod is building remote path that will be used for given Pod. Depending on the configuration the `.Spec.RemotePath` may be a JINJA2 template
 //                        and this method allows to use syntax like {% pod.metadata.labels["directoryName"] %}
-func (in *PodFilesystemSync) ResolveDirectoryForPod(pod *v1.Pod) (string, error) {
+func (in *PodFilesystemSync) ResolveRemoteDirectoryForPod(pod *v1.Pod) (string, error) {
 	tmpl, templateErr := pongo2.FromString(in.Spec.RemotePath)
 	if templateErr != nil {
 		return "", errors.Wrapf(templateErr, "Cannot build remote path using template '%v' - parse error", in.Spec.RemotePath)
@@ -189,7 +215,7 @@ func (in *PodFilesystemSync) findLocation(path string) (bool, *LocationStatus) {
 
 // WasAlreadySynchronized tells if Pod's filesystem was already at least one time synchronized
 func (in *PodFilesystemSync) WasAlreadySynchronized(pod *v1.Pod) (bool, error) {
-	directory, err := in.ResolveDirectoryForPod(pod)
+	directory, err := in.ResolveRemoteDirectoryForPod(pod)
 	if err != nil {
 		return false, err
 	}
@@ -225,11 +251,11 @@ func (in *PodFilesystemSync) ShouldSynchronizeToRemote() bool {
 	return in.Spec.SyncOptions.AllowedDirections.ToRemote
 }
 
-// todo: Implement a watcher on a Pod to check if the synchronization successfully finished
+// todo: Implement a watcher on a Pod to check if the synchronization successfully finished - or a webhook?
 
 // ClaimDirectoryByPod mark target directory claimed by Pod as synchronized
 func (in *PodFilesystemSync) ClaimDirectoryByPod(pod *v1.Pod) error {
-	directory, err := in.ResolveDirectoryForPod(pod)
+	directory, err := in.ResolveRemoteDirectoryForPod(pod)
 	if err != nil {
 		return err
 	}

@@ -56,6 +56,18 @@ spec:
                       type: string
                   type: object
                 type: array
+              initContainerPlacement:
+                properties:
+                  containerReference:
+                    type: string
+                  placement:
+                    enum:
+                    - before
+                    - after
+                    - first
+                    - last
+                    type: string
+                type: object
               localPath:
                 type: string
               podSelector:
@@ -132,6 +144,7 @@ spec:
                     type: string
                 type: object
             required:
+            - initContainerPlacement
             - localPath
             - podSelector
             - remotePath

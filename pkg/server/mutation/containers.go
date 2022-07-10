@@ -1,6 +1,8 @@
 package mutation
 
 import (
+	"github.com/pkg/errors"
+	"github.com/riotkit-org/volume-syncing-controller/pkg/apis/riotkit.org/v1alpha1"
 	"github.com/riotkit-org/volume-syncing-controller/pkg/server/context"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
@@ -15,6 +17,13 @@ func MutatePodByInjectingContainers(pod *corev1.Pod, image string, preSynchroniz
 	if preSynchronizeFromRemoteOnStart && !hasInitContainer(pod) {
 		nLogger.Infof("`kind: Pod` '%s' has no initContainer present", pod.ObjectMeta.Name)
 		pod.Spec.InitContainers = append(pod.Spec.InitContainers, createContainer(true, context.InitContainerName, pod, image, params, params.CreateCommandlineArgumentsForInitContainer()))
+
+		// make sure the initContainer is placed in a proper order
+		var err error
+		pod.Spec.InitContainers, err = reorderInitContainer(pod.Spec.InitContainers, context.InitContainerName, params.InitContainerPlacement)
+		if err != nil {
+			return errors.Wrapf(err, "Cannot reorder initContainers to place '%s' in proper place", context.InitContainerName)
+		}
 	}
 
 	if canSynchronizeToRemote && !hasSideCar(pod) {
@@ -151,4 +160,44 @@ func hasSideCar(pod *corev1.Pod) bool {
 		}
 	}
 	return false
+}
+
+// reorderInitContainer is making sure that the container will be placed in a proper order
+func reorderInitContainer(containers []corev1.Container, containerName string, placement v1alpha1.InitContainerPlacementSpec) ([]corev1.Container, error) {
+	foundAtIndex := 0
+	var copied []corev1.Container // list without our container
+	var ourContainer corev1.Container
+
+	// at first find our container
+	for num, container := range containers {
+		if container.Name == containerName {
+			foundAtIndex = num
+			ourContainer = container
+			continue
+		}
+		copied = append(copied, container)
+	}
+
+	if placement.Placement == "first" && foundAtIndex != 0 {
+		return append([]corev1.Container{ourContainer}, copied...), nil
+
+	} else if placement.Placement == "last" && foundAtIndex+1 != len(containers) {
+		return append(copied, ourContainer), nil
+
+	} else if placement.Placement == "before" || placement.Placement == "after" {
+		var final []corev1.Container
+
+		for _, container := range copied {
+			if container.Name == placement.ContainerReference && placement.Placement == "before" {
+				final = append(final, ourContainer)
+			}
+			final = append(final, container)
+			if container.Name == placement.ContainerReference && placement.Placement == "after" {
+				final = append(final, ourContainer)
+			}
+		}
+		return final, nil
+	}
+
+	return containers, nil
 }

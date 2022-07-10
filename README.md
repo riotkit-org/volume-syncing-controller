@@ -19,11 +19,15 @@ Roadmap
 - [x] Allow to disable synchronization or restore in CRD
 - [x] Jinja2 templating support inside `kind: PodFilesystemSync` to allow using single definition for multiple `kind: Pod` objects
 - [x] Termination hook to synchronize Pod before it gets terminated
-- [ ] Allow to decide about the order of initContainer in CRD + annotation
+- [x] Allow to decide about the order of initContainer in CRD
 
 **v1.1:**
 - [ ] Health check: If N-synchronization fails, then mark Pod as unhealthy (optionally)
 - [ ] Periodical synchronization using filesystem events instead of cron-like scheduler (both should be available)
+
+**v1.2:**
+- [ ] Watch synchronization progress and update status field. Pods can notify controller using webhooks with a token granted on Pod creation
+- [ ] Expose Prometheus metrics at /metrics, add configuration for Prometheus and Victoria Metrics in Helm
 
 
 Kubernetes controller architecture

@@ -31,6 +31,9 @@ type SynchronizationParameters struct {
 	// Optional owner UID & group GID
 	Owner string
 	Group string
+
+	// Where to place initContainer
+	InitContainerPlacement v1alpha1.InitContainerPlacementSpec
 }
 
 // CreateCommandlineArgumentsForInitContainer is creating commandline arguments for volume-syncing-controller remote-to-local-sync
@@ -97,6 +100,11 @@ func NewSynchronizationParameters(pod *corev1.Pod, syncDefinition *v1alpha1.PodF
 		gid = val
 	}
 
+	// check if the placement is logical
+	if err := syncDefinition.Spec.InitContainerPlacement.Validate(); err != nil {
+		return SynchronizationParameters{}, errors.Wrap(err, "Cannot create synchronization parameters")
+	}
+
 	// `kind: Secret`
 	// convert map to list to be used in envFrom
 	var envSecrets []string
@@ -104,7 +112,7 @@ func NewSynchronizationParameters(pod *corev1.Pod, syncDefinition *v1alpha1.PodF
 		envSecrets = append(envSecrets, secret.Name)
 	}
 
-	remotePath, resolveErr := syncDefinition.ResolveDirectoryForPod(pod)
+	remotePath, resolveErr := syncDefinition.ResolveRemoteDirectoryForPod(pod)
 	if resolveErr != nil {
 		return SynchronizationParameters{}, errors.Wrap(resolveErr, "Cannot create synchronization parameters")
 	}
@@ -127,5 +135,7 @@ func NewSynchronizationParameters(pod *corev1.Pod, syncDefinition *v1alpha1.PodF
 
 		Owner: uid,
 		Group: gid,
+
+		InitContainerPlacement: syncDefinition.Spec.InitContainerPlacement,
 	}, nil
 }
