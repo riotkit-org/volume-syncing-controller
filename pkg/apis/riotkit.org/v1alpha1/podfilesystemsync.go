@@ -136,7 +136,7 @@ type PodFilesystemSyncSpec struct {
 	RemotePath string `json:"remotePath"`
 
 	SyncOptions            SyncOptionsSpec            `json:"syncOptions"`
-	InitContainerPlacement InitContainerPlacementSpec `json:"initContainerPlacement"`
+	InitContainerPlacement InitContainerPlacementSpec `json:"initContainerPlacement,omitempty"`
 
 	// use environment to configure remotes and encryption
 	// values can contain Go-Template syntax e.g. {{ .pod.metadata.labels["some-label"] }}
