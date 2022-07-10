@@ -13,8 +13,9 @@ metadata:
         {{- include "volume-syncing-controller.labels" . | nindent 8 }}
 webhooks:
     - name: {{ include "volume-syncing-controller.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
-      failurePolicy: Fail
-      {{- if .Values.onlyLabelledNamespaces }}
+      reinvocationPolicy: {{ .Values.webhook.reinvocationPolicy }}
+      failurePolicy: {{ .Values.webhook.failurePolicy }}
+      {{- if .Values.webhook.onlyLabelledNamespaces }}
       namespaceSelector:
           matchLabels:
               riotkit.org/volume-syncing-controller: "true"
@@ -37,7 +38,7 @@ webhooks:
           caBundle: {{ b64enc $ca.Cert }}
       admissionReviewVersions: ["v1"]
       sideEffects: NoneOnDryRun
-      timeoutSeconds: 5
+      timeoutSeconds: {{ .Values.webhook.timeoutSeconds }}
 
 
 ---
@@ -51,7 +52,7 @@ metadata:
 webhooks:
     - name: {{ include "volume-syncing-controller.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
       failurePolicy: Fail
-      {{- if .Values.onlyLabelledNamespaces }}
+      {{- if .Values.webhook.onlyLabelledNamespaces }}
       namespaceSelector:
           matchLabels:
               riotkit.org/volume-syncing-controller: "true"

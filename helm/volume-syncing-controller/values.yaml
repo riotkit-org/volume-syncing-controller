@@ -1,6 +1,17 @@
 
-# work only inside namespaces that are labelled with `riotkit.org/volume-syncing-controller: "true"`
-onlyLabelledNamespaces: false
+
+webhook:
+    # work only inside namespaces that are labelled with `riotkit.org/volume-syncing-controller: "true"`
+    onlyLabelledNamespaces: false
+
+    # if other webhook modifies the Pod, then re-execute the webhook
+    reinvocationPolicy: IfNeeded
+
+    # prevent from Pod scheduling if webhook fails. This affects only labelled Pods - don't worry, it will not kill your cluster
+    failurePolicy: Fail
+
+    # typically the webhook microservice should respond within milliseconds
+    timeoutSeconds: 5
 
 terminationGracePeriodSeconds: 5
 podAnnotations: {}
