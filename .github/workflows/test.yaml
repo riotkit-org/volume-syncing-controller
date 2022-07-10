@@ -25,13 +25,13 @@ jobs:
                   fetch-depth: 0
 
             - name: Build
-              run: "make build-binary"  # todo: change to make build?
+              run: "make build"  # todo: change to make build?
 
             - name: Check Helm Chart
               run: "make helm"
 
             - name: Test
-              run: "make minio coverage"
+              run: "make coverage"
 
             - name: SonarCloud Scan
               uses: sonarsource/sonarcloud-github-action@master
@@ -67,7 +67,7 @@ jobs:
               run: "docker build . -f github-actions.rclone.Dockerfile -t rclone:current > /dev/null; docker create --name rclone rclone:current > /dev/null; sudo docker cp rclone:/usr/local/bin/rclone /usr/bin/rclone"
 
             - name: Download k3d binary
-              run:  "sudo wget https://github.com/k3d-io/k3d/releases/download/v5.4.3/k3d-linux-amd64 -O /usr/bin/k3d; sudo chmod +x /usr/bin/k3d"
+              run: "sudo wget https://github.com/k3d-io/k3d/releases/download/v5.4.3/k3d-linux-amd64 -O /usr/bin/k3d; sudo chmod +x /usr/bin/k3d"
 
             - name: Run E2E tests
               run: "make setup_e2e test_k8s minio test"

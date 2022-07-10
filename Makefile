@@ -15,8 +15,11 @@ crd-manifests: $(CONTROLLER_GEN)
 	cp crds/* helm/volume-syncing-operator/templates/
 	git add crds helm/volume-syncing-operator/templates/
 
+.PHONY: build-all
+build-all: gen-api build-binary crd-manifests
+
 .PHONY: build
-build: gen-api build-binary crd-manifests
+build: build-binary
 
 .PHONY: build-binary
 build-binary:
