@@ -24,7 +24,7 @@ func TestNewSynchronizationParameters_UIDAndGIDCanBeSetWithAnnotations(t *testin
 		},
 	}
 
-	definition := v1alpha1.PodFilesystemSync{}
+	definition := v1alpha1.NewPodFilesystemSync()
 
 	params, err := NewSynchronizationParameters(&pod, &definition, map[string]string{})
 	assert.Nil(t, err)
@@ -44,7 +44,7 @@ func TestNewSynchronizationParameters_ResolvesRemotePathFromTemplate(t *testing.
 			},
 		},
 	}
-	definition := v1alpha1.PodFilesystemSync{}
+	definition := v1alpha1.NewPodFilesystemSync()
 	definition.Spec.RemotePath = "/mnt/{{ pod.ObjectMeta.Labels[\"some\"] }}/and-lenin-too"
 
 	params, err := NewSynchronizationParameters(&pod, &definition, map[string]string{})

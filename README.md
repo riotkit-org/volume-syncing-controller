@@ -3,6 +3,14 @@ volume-syncing-controller
 
 Docker container and Kubernetes controller for periodically synchronizing volumes to cloud-native storage, and restoring their state from cloud-native storage.
 
+Example use cases
+-----------------
+
+- Service restored from cloud-storage in other data center with its own CNI
+- Kubernetes service state kept in cloud-storage, restored outside Kubernetes (e.g. in docker on desktop for development)
+- Snapshot type backup (does not support versioning on client side - the cloud remote storage could do this)
+- Ability to move services between machines in tiny K3s clusters, where network CNI is not available - only local storage is used
+
 Roadmap
 -------
 
