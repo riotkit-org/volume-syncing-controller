@@ -2,9 +2,9 @@ package serve
 
 import (
 	"github.com/pkg/errors"
-	"github.com/riotkit-org/volume-syncing-operator/pkg/client/clientset/versioned"
-	"github.com/riotkit-org/volume-syncing-operator/pkg/server/cache"
-	"github.com/riotkit-org/volume-syncing-operator/pkg/server/http"
+	"github.com/riotkit-org/volume-syncing-controller/pkg/client/clientset/versioned"
+	"github.com/riotkit-org/volume-syncing-controller/pkg/server/cache"
+	"github.com/riotkit-org/volume-syncing-controller/pkg/server/http"
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"

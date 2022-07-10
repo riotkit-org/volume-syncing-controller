@@ -4,7 +4,7 @@ kind: Pod
 metadata:
     name: with-dynamic-directory-name
     labels:
-        riotkit.org/volume-syncing-operator: "true"
+        riotkit.org/volume-syncing-controller: "true"
         variant: "with-dynamic-directory-name"
     annotations:
         subdir: "lenin-too"

@@ -1,7 +1,7 @@
 package remote_to_local
 
 import (
-	"github.com/riotkit-org/volume-syncing-operator/pkg/helpers"
+	"github.com/riotkit-org/volume-syncing-controller/pkg/helpers"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -35,7 +35,7 @@ func NewRestoreCommand() *cobra.Command {
 	command.Flags().BoolVarP(&noDelete, "no-delete", "x", true, "Don't delete files in local filesystem (may be dangerous if wrong path specified)")
 	command.Flags().BoolVarP(&app.forceCleanUp, "force-delete-local-dir", "n", true, "Force delete local files that are not present on remote")
 	command.Flags().BoolVarP(&app.debug, "verbose", "v", false, "Increase verbosity")
-	command.Flags().StringVarP(&app.pidPath, "pid-path", "", "/run/volume-syncing-operator.pid", "PID path")
+	command.Flags().StringVarP(&app.pidPath, "pid-path", "", "/run/volume-syncing-controller.pid", "PID path")
 	// todo: --fsnotify
 
 	return command

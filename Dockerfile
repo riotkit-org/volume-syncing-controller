@@ -9,10 +9,10 @@ FROM rclone/rclone:1.58.1 as rcloneSrc
 # ================
 FROM alpine:3.16 AS workspaceBuilder
 
-RUN mkdir -p /etc/volume-syncing-operator /mnt /run \
-    && touch /etc/volume-syncing-operator/rclone.conf /run/volume-syncing-operator.pid \
-    && chown -R 65312:65312 /etc/volume-syncing-operator /mnt /run \
-    && chmod -R 777 /etc/volume-syncing-operator /mnt /run
+RUN mkdir -p /etc/volume-syncing-controller /mnt /run \
+    && touch /etc/volume-syncing-controller/rclone.conf /run/volume-syncing-controller.pid \
+    && chown -R 65312:65312 /etc/volume-syncing-controller /mnt /run \
+    && chmod -R 777 /etc/volume-syncing-controller /mnt /run
 
 
 # =========================
@@ -23,9 +23,9 @@ FROM scratch
 # copy a versioned artifact from official released image
 COPY --from=rcloneSrc /usr/local/bin/rclone /usr/bin/rclone
 # copy already built artifact by CI
-COPY ./.build/volume-syncing-operator /usr/bin/volume-syncing-operator
+COPY ./.build/volume-syncing-controller /usr/bin/volume-syncing-controller
 # copy a directory with prepared permissions
-COPY --from=workspaceBuilder /etc/volume-syncing-operator /etc/volume-syncing-operator
+COPY --from=workspaceBuilder /etc/volume-syncing-controller /etc/volume-syncing-controller
 COPY --from=workspaceBuilder /run /run
 
 ENV REMOTE_TYPE="s3"
@@ -43,4 +43,4 @@ ENV PATH="/usr/bin"
 
 USER 65312
 WORKDIR /mnt
-ENTRYPOINT ["/usr/bin/volume-syncing-operator"]
+ENTRYPOINT ["/usr/bin/volume-syncing-controller"]

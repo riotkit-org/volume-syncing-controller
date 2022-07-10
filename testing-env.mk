@@ -1,9 +1,9 @@
 IMAGE_TAG=snapshot
-DEV_LOCAL_IMAGE_REPOSITORY=127.0.0.1:30050/volume-syncing-operator
-CHART_NAME=volume-syncing-operator
+DEV_LOCAL_IMAGE_REPOSITORY=127.0.0.1:30050/volume-syncing-controller
+CHART_NAME=volume-syncing-controller
 
 k3d@cluster: ## Run local empty Kubernetes cluster
-	k3d cluster create volume-syncing-operator-sandbox --agents 1 -p "30080:30080@agent:0" -p "30081:30081@agent:0" -p "30050:30050@agent:0"
+	k3d cluster create volume-syncing-controller-sandbox --agents 1 -p "30080:30080@agent:0" -p "30081:30081@agent:0" -p "30050:30050@agent:0"
 
 k3d@registry: k3d@make-sure
 	helm repo add twuni https://helm.twun.io
@@ -23,7 +23,7 @@ k3d@deploy: k3d@make-sure
 	cd helm/${CHART_NAME} && helm upgrade --install vso . --values ../../tests/.helpers/local-release.values.yaml --debug --wait --timeout 30s
 
 k3d@release: k3d@make-sure
-	kubectl delete deployment vso-volume-syncing-operator || true
+	kubectl delete deployment vso-volume-syncing-controller || true
 	make build-binary k3d@publish-image k3d@deploy
 
 k3d@template:

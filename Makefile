@@ -12,8 +12,8 @@ $(CONTROLLER_GEN):
 
 crd-manifests: $(CONTROLLER_GEN)
 	$(CONTROLLER_GEN) crd:maxDescLen=0 paths="./pkg/apis/riotkit.org/v1alpha1/..." output:crd:artifacts:config=crds
-	cp crds/* helm/volume-syncing-operator/templates/
-	git add crds helm/volume-syncing-operator/templates/
+	cp crds/* helm/volume-syncing-controller/templates/
+	git add crds helm/volume-syncing-controller/templates/
 
 .PHONY: build-all
 build-all: gen-api build-binary crd-manifests
@@ -25,7 +25,7 @@ build: build-binary
 build-binary:
 	@echo "\n🔧  Building Go binaries..."
 	mkdir -p .build
-	CGO_ENABLED=0 GO111MODULE=on GOOS=linux GOARCH=amd64 go build -o .build/volume-syncing-operator .
+	CGO_ENABLED=0 GO111MODULE=on GOOS=linux GOARCH=amd64 go build -o .build/volume-syncing-controller .
 
 .PHONY: build-docker
 build-docker:
@@ -33,8 +33,8 @@ build-docker:
 
 .PHONY: helm
 helm:
-	cp README.md helm/volume-syncing-operator/
-	cd helm/volume-syncing-operator/ && helm lint ./
+	cp README.md helm/volume-syncing-controller/
+	cd helm/volume-syncing-controller/ && helm lint ./
 
 .PHONY: coverage
 coverage:

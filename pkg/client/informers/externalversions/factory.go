@@ -23,9 +23,9 @@ import (
 	sync "sync"
 	time "time"
 
-	versioned "github.com/riotkit-org/volume-syncing-operator/pkg/client/clientset/versioned"
-	internalinterfaces "github.com/riotkit-org/volume-syncing-operator/pkg/client/informers/externalversions/internalinterfaces"
-	riotkitorg "github.com/riotkit-org/volume-syncing-operator/pkg/client/informers/externalversions/riotkit.org"
+	versioned "github.com/riotkit-org/volume-syncing-controller/pkg/client/clientset/versioned"
+	internalinterfaces "github.com/riotkit-org/volume-syncing-controller/pkg/client/informers/externalversions/internalinterfaces"
+	riotkitorg "github.com/riotkit-org/volume-syncing-controller/pkg/client/informers/externalversions/riotkit.org"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"

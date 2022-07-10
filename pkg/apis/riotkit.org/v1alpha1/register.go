@@ -1,7 +1,7 @@
 package v1alpha1
 
 import (
-	riotkitorg "github.com/riotkit-org/volume-syncing-operator/pkg/apis/riotkit.org"
+	riotkitorg "github.com/riotkit-org/volume-syncing-controller/pkg/apis/riotkit.org"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"

@@ -1,27 +1,27 @@
-{{- $cn := printf "%s.%s.svc" ( include "volume-syncing-operator.fullname" . ) .Release.Namespace }}
-{{- $ca := genCA "volume-syncing-operator-admission-ca" 3650 -}}
-{{- $altNames := list ( $cn ) ( include "volume-syncing-operator.fullname" . ) -}}
+{{- $cn := printf "%s.%s.svc" ( include "volume-syncing-controller.fullname" . ) .Release.Namespace }}
+{{- $ca := genCA "volume-syncing-controller-admission-ca" 3650 -}}
+{{- $altNames := list ( $cn ) ( include "volume-syncing-controller.fullname" . ) -}}
 {{- $cert := genSignedCert $cn nil $altNames 3650 $ca -}}
 
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
-    name: {{ include "volume-syncing-operator.fullname" . }}-mutator
+    name: {{ include "volume-syncing-controller.fullname" . }}-mutator
     namespace: {{ .Release.Namespace }}
     labels:
-        {{- include "volume-syncing-operator.labels" . | nindent 8 }}
+        {{- include "volume-syncing-controller.labels" . | nindent 8 }}
 webhooks:
-    - name: {{ include "volume-syncing-operator.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
+    - name: {{ include "volume-syncing-controller.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
       failurePolicy: Fail
       {{- if .Values.onlyLabelledNamespaces }}
       namespaceSelector:
           matchLabels:
-              riotkit.org/volume-syncing-operator: "true"
+              riotkit.org/volume-syncing-controller: "true"
       {{- end }}
       objectSelector:
           matchLabels:
-              riotkit.org/volume-syncing-operator: "true"
+              riotkit.org/volume-syncing-controller: "true"
       rules:
           - apiGroups: [""]
             apiVersions: ["v1"]
@@ -31,7 +31,7 @@ webhooks:
       clientConfig:
           service:
               namespace: {{ .Release.Namespace }}
-              name: {{ include "volume-syncing-operator.fullname" . }}
+              name: {{ include "volume-syncing-controller.fullname" . }}
               path: /mutate-pods
               port: 4443
           caBundle: {{ b64enc $ca.Cert }}
@@ -44,17 +44,17 @@ webhooks:
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
-    name: {{ include "volume-syncing-operator.fullname" . }}-informer
+    name: {{ include "volume-syncing-controller.fullname" . }}-informer
     namespace: {{ .Release.Namespace }}
     labels:
-      {{- include "volume-syncing-operator.labels" . | nindent 8 }}
+      {{- include "volume-syncing-controller.labels" . | nindent 8 }}
 webhooks:
-    - name: {{ include "volume-syncing-operator.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
+    - name: {{ include "volume-syncing-controller.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
       failurePolicy: Fail
       {{- if .Values.onlyLabelledNamespaces }}
       namespaceSelector:
           matchLabels:
-              riotkit.org/volume-syncing-operator: "true"
+              riotkit.org/volume-syncing-controller: "true"
       {{- end }}
       rules:
           - apiGroups: ["riotkit.org"]
@@ -65,7 +65,7 @@ webhooks:
       clientConfig:
           service:
               namespace: {{ .Release.Namespace }}
-              name: {{ include "volume-syncing-operator.fullname" . }}
+              name: {{ include "volume-syncing-controller.fullname" . }}
               path: /inform
               port: 4443
           caBundle: {{ b64enc $ca.Cert }}
@@ -77,7 +77,7 @@ webhooks:
 apiVersion: v1
 kind: Secret
 metadata:
-    name: {{ include "volume-syncing-operator.fullname" . }}
+    name: {{ include "volume-syncing-controller.fullname" . }}
 data:
     tls.crt: {{ b64enc $cert.Cert }}
     tls.key: {{ b64enc $cert.Key }}

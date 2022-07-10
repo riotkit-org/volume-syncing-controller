@@ -1,5 +1,5 @@
 image:
-    repository: 127.0.0.1:30050/volume-syncing-operator
+    repository: 127.0.0.1:30050/volume-syncing-controller
     tag: snapshot
 
 env:

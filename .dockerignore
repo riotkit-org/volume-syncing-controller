@@ -1,4 +1,4 @@
 /Dockerfile
 /.build
-!/.build/volume-syncing-operator
+!/.build/volume-syncing-controller
 /README.md

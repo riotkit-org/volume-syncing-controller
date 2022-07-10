@@ -1,4 +1,4 @@
-module github.com/riotkit-org/volume-syncing-operator
+module github.com/riotkit-org/volume-syncing-controller
 
 go 1.18
 

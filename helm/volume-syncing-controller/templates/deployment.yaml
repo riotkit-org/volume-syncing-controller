@@ -2,14 +2,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: {{ include "volume-syncing-operator.fullname" . }}
+    name: {{ include "volume-syncing-controller.fullname" . }}
     labels:
-        {{- include "volume-syncing-operator.labels" . | nindent 8 }}
+        {{- include "volume-syncing-controller.labels" . | nindent 8 }}
 spec:
     replicas: {{ .Values.replicas }}
     selector:
         matchLabels:
-            {{- include "volume-syncing-operator.selectorLabels" . | nindent 10 }}
+            {{- include "volume-syncing-controller.selectorLabels" . | nindent 10 }}
     template:
         metadata:
           {{- with .Values.podAnnotations }}
@@ -20,7 +20,7 @@ spec:
               {{- with .Values.podLabels }}
               {{- toYaml . | nindent 14 }}
               {{- end }}
-              {{- include "volume-syncing-operator.selectorLabels" . | nindent 14 }}
+              {{- include "volume-syncing-controller.selectorLabels" . | nindent 14 }}
               {{- if eq (.Values.image.tag | default .Chart.AppVersion) "latest" | or (eq (.Values.image.tag | default .Chart.AppVersion) "snapshot") }}
               refreshImageTag: "{{- randAlphaNum 24 | nospace -}}"
               {{- end }}
@@ -93,4 +93,4 @@ spec:
             volumes:
                 - name: tls
                   secret:
-                      secretName: {{ include "volume-syncing-operator.fullname" . }}
+                      secretName: {{ include "volume-syncing-controller.fullname" . }}

@@ -2,7 +2,7 @@ package context
 
 import (
 	"github.com/pkg/errors"
-	"github.com/riotkit-org/volume-syncing-operator/pkg/apis/riotkit.org/v1alpha1"
+	"github.com/riotkit-org/volume-syncing-controller/pkg/apis/riotkit.org/v1alpha1"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 )
@@ -33,13 +33,13 @@ type SynchronizationParameters struct {
 	Group string
 }
 
-// CreateCommandlineArgumentsForInitContainer is creating commandline arguments for volume-syncing-operator remote-to-local-sync
+// CreateCommandlineArgumentsForInitContainer is creating commandline arguments for volume-syncing-controller remote-to-local-sync
 func (p *SynchronizationParameters) CreateCommandlineArgumentsForInitContainer() []string {
 	args := []string{
 		"remote-to-local-sync",
 		"--src", p.RemotePath,
 		"--dst", p.LocalPath,
-		"--config-path", "/etc/volume-syncing-operator/rclone.conf",
+		"--config-path", "/etc/volume-syncing-controller/rclone.conf",
 	}
 
 	if p.Debug {
@@ -55,13 +55,13 @@ func (p *SynchronizationParameters) CreateCommandlineArgumentsForInitContainer()
 	return args
 }
 
-// CreateCommandlineArgumentsForSideCar is creating commandline args for volume-syncing-operator sync-to-remote
+// CreateCommandlineArgumentsForSideCar is creating commandline args for volume-syncing-controller sync-to-remote
 func (p *SynchronizationParameters) CreateCommandlineArgumentsForSideCar() []string {
 	args := []string{
 		"sync-to-remote",
 		"--src", p.LocalPath,
 		"--dst", p.RemotePath,
-		"--config-path", "/etc/volume-syncing-operator/rclone.conf",
+		"--config-path", "/etc/volume-syncing-controller/rclone.conf",
 	}
 
 	if p.SyncSchedule != "" && (p.SyncMethod == "scheduler" || p.SyncMethod == "") {

@@ -3,8 +3,8 @@ package signalling
 import (
 	"fmt"
 	"github.com/pkg/errors"
-	"github.com/riotkit-org/volume-syncing-operator/pkg/cron"
-	"github.com/riotkit-org/volume-syncing-operator/pkg/rclone"
+	"github.com/riotkit-org/volume-syncing-controller/pkg/cron"
+	"github.com/riotkit-org/volume-syncing-controller/pkg/rclone"
 	"github.com/sirupsen/logrus"
 	"os"
 	"os/signal"

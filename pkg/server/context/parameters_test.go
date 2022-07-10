@@ -1,7 +1,7 @@
 package context
 
 import (
-	"github.com/riotkit-org/volume-syncing-operator/pkg/apis/riotkit.org/v1alpha1"
+	"github.com/riotkit-org/volume-syncing-controller/pkg/apis/riotkit.org/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -15,7 +15,7 @@ func TestNewSynchronizationParameters_UIDAndGIDCanBeSetWithAnnotations(t *testin
 			Name:      "first-pod",
 			Namespace: "default",
 			Labels: map[string]string{
-				"riotkit.org/volume-syncing-operator": "true",
+				"riotkit.org/volume-syncing-controller": "true",
 			},
 			Annotations: map[string]string{
 				"riotkit.org/volume-user-id":  "1312",
@@ -39,8 +39,8 @@ func TestNewSynchronizationParameters_ResolvesRemotePathFromTemplate(t *testing.
 			Name:      "first-pod",
 			Namespace: "default",
 			Labels: map[string]string{
-				"riotkit.org/volume-syncing-operator": "true",
-				"some":                                "hitler-was-a-dickhead",
+				"riotkit.org/volume-syncing-controller": "true",
+				"some":                                  "hitler-was-a-dickhead",
 			},
 		},
 	}

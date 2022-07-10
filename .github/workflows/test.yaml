@@ -43,7 +43,7 @@ jobs:
             - uses: actions/upload-artifact@v3
               with:
                   name: binary
-                  path: .build/volume-syncing-operator
+                  path: .build/volume-syncing-controller
 
     test-e2e:
         runs-on: ubuntu-20.04
@@ -86,7 +86,7 @@ jobs:
               uses: softprops/action-gh-release@v1
               with:
                   files: |
-                      .build/volume-syncing-operator
+                      .build/volume-syncing-controller
 
     release-docker:
         runs-on: ubuntu-20.04
@@ -114,7 +114,7 @@ jobs:
               id: meta
               uses: docker/metadata-action@v3
               with:
-                  images: ghcr.io/riotkit-org/volume-syncing-operator
+                  images: ghcr.io/riotkit-org/volume-syncing-controller
 
             - name: Build and relase docker
               uses: docker/build-push-action@v2

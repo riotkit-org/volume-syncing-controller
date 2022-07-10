@@ -18,8 +18,8 @@ func TestPodFilesystemSync_IsPodMatching(t *testing.T) {
 	firstPod := v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
-				"riotkit.org/volume-syncing-operator": "true",
-				"variant":                             "with-dynamic-directory-name",
+				"riotkit.org/volume-syncing-controller": "true",
+				"variant":                               "with-dynamic-directory-name",
 			},
 		},
 	}
@@ -34,8 +34,8 @@ func TestPodFilesystemSync_IsPodMatching(t *testing.T) {
 	secondPod := v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
-				"riotkit.org/volume-syncing-operator": "true",
-				"my-pod-label":                        "test",
+				"riotkit.org/volume-syncing-controller": "true",
+				"my-pod-label":                          "test",
 			},
 		},
 	}
@@ -53,8 +53,8 @@ func TestPodFilesystemSync_WasAlreadySynchronized(t *testing.T) {
 			Name:      "lenin-was-a-dickhead",
 			Namespace: "kronstadt",
 			Labels: map[string]string{
-				"riotkit.org/volume-syncing-operator": "true",
-				"variant":                             "with-dynamic-directory-name",
+				"riotkit.org/volume-syncing-controller": "true",
+				"variant":                               "with-dynamic-directory-name",
 			},
 		},
 	}
@@ -83,8 +83,8 @@ func TestPodFilesystemSync_ShouldRestoreFilesFromRemote_DisabledDirection(t *tes
 			Name:      "lenin-was-a-dickhead",
 			Namespace: "kronstadt",
 			Labels: map[string]string{
-				"riotkit.org/volume-syncing-operator": "true",
-				"variant":                             "with-dynamic-directory-name",
+				"riotkit.org/volume-syncing-controller": "true",
+				"variant":                               "with-dynamic-directory-name",
 			},
 		},
 	}

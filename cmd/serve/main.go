@@ -1,7 +1,7 @@
 package serve
 
 import (
-	"github.com/riotkit-org/volume-syncing-operator/pkg/helpers"
+	"github.com/riotkit-org/volume-syncing-controller/pkg/helpers"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -24,7 +24,7 @@ func NewServeCommand() *cobra.Command {
 	command.Flags().BoolVarP(&app.TLS, "tls", "t", helpers.GetEnvOrDefault("USE_TLS", false).(bool), "Use TLS (requires certificates)")
 	command.Flags().StringVarP(&app.TLSCrtPath, "tls-crt", "", helpers.GetEnvOrDefault("TLS_CRT_PATH", "/etc/admission-webhook/tls/tls.crt").(string), "tls.crt")
 	command.Flags().StringVarP(&app.TLSKeyPath, "tls-key", "", helpers.GetEnvOrDefault("TLS_KEY_PATH", "/etc/admission-webhook/tls/tls.key").(string), "tls.key")
-	command.Flags().StringVarP(&app.Image, "image", "i", helpers.GetEnvOrDefault("IMAGE", "ghcr.io/riotkit-org/volume-syncing-operator:snapshot").(string), "Docker image")
+	command.Flags().StringVarP(&app.Image, "image", "i", helpers.GetEnvOrDefault("IMAGE", "ghcr.io/riotkit-org/volume-syncing-controller:snapshot").(string), "Docker image")
 
 	return command
 }

@@ -29,7 +29,7 @@ readonly REPO_NAME="${REPO_NAME:-$(basename ${REPO_ROOT_DIR} 2> /dev/null)}"
 # need to be separated (at least in terms of go package) from the pipeline's packages to
 # not having dependency cycle.
 bash ${REPO_ROOT_DIR}/hack/generate-groups.sh "deepcopy,client,informer,lister" \
-  github.com/riotkit-org/volume-syncing-operator/pkg/client github.com/riotkit-org/volume-syncing-operator/pkg/apis \
+  github.com/riotkit-org/volume-syncing-controller/pkg/client github.com/riotkit-org/volume-syncing-controller/pkg/apis \
   "riotkit.org:v1alpha1" \
   --go-header-file="${SCRIPT_DIR}/boilerplate.go.txt" \
   --output-base=${SCRIPT_DIR}/../.build/generated
@@ -38,6 +38,6 @@ bash ${REPO_ROOT_DIR}/hack/generate-groups.sh "deepcopy,client,informer,lister" 
 rm -rf ${SCRIPT_DIR}/../pkg/client
 
 # copy regenerated
-cp -pr ${SCRIPT_DIR}/../.build/generated/github.com/riotkit-org/volume-syncing-operator/pkg/apis/* ${SCRIPT_DIR}/../pkg/apis
-mv ${SCRIPT_DIR}/../.build/generated/github.com/riotkit-org/volume-syncing-operator/pkg/client ${SCRIPT_DIR}/../pkg/client
+cp -pr ${SCRIPT_DIR}/../.build/generated/github.com/riotkit-org/volume-syncing-controller/pkg/apis/* ${SCRIPT_DIR}/../pkg/apis
+mv ${SCRIPT_DIR}/../.build/generated/github.com/riotkit-org/volume-syncing-controller/pkg/client ${SCRIPT_DIR}/../pkg/client
 rm -rf ${SCRIPT_DIR}/../.build/generated

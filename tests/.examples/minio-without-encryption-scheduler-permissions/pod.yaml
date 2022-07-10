@@ -4,7 +4,7 @@ kind: Pod
 metadata:
     name: minio-without-encryption-scheduler-permissions
     labels:
-        riotkit.org/volume-syncing-operator: "true"
+        riotkit.org/volume-syncing-controller: "true"
         my-pod-label: "test"
 spec:
     restartPolicy: Never

@@ -21,7 +21,7 @@ package versioned
 import (
 	"fmt"
 
-	riotkitv1alpha1 "github.com/riotkit-org/volume-syncing-operator/pkg/client/clientset/versioned/typed/riotkit.org/v1alpha1"
+	riotkitv1alpha1 "github.com/riotkit-org/volume-syncing-controller/pkg/client/clientset/versioned/typed/riotkit.org/v1alpha1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"

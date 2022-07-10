@@ -1,5 +1,5 @@
 apiVersion: v2
-name: volume-syncing-operator
+name: volume-syncing-controller
 description: "Operator for periodically synchronizing volumes to cloud-native storage, and restoring their state from cloud-native storage."
 type: application
 version: 0.1.0

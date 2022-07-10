@@ -1,9 +1,9 @@
 package cache_test
 
 import (
-	"github.com/riotkit-org/volume-syncing-operator/pkg/apis/riotkit.org/v1alpha1"
-	"github.com/riotkit-org/volume-syncing-operator/pkg/client/clientset/versioned/fake"
-	"github.com/riotkit-org/volume-syncing-operator/pkg/server/cache"
+	"github.com/riotkit-org/volume-syncing-controller/pkg/apis/riotkit.org/v1alpha1"
+	"github.com/riotkit-org/volume-syncing-controller/pkg/client/clientset/versioned/fake"
+	"github.com/riotkit-org/volume-syncing-controller/pkg/server/cache"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -26,8 +26,8 @@ func createData() (v1alpha1.PodFilesystemSync, v1alpha1.PodFilesystemSync, v1.Po
 			Name:      "first-pod",
 			Namespace: "default",
 			Labels: map[string]string{
-				"riotkit.org/volume-syncing-operator": "true",
-				"variant":                             "with-dynamic-directory-name",
+				"riotkit.org/volume-syncing-controller": "true",
+				"variant":                               "with-dynamic-directory-name",
 			},
 		},
 	}
@@ -46,8 +46,8 @@ func createData() (v1alpha1.PodFilesystemSync, v1alpha1.PodFilesystemSync, v1.Po
 			Name:      "second-pod",
 			Namespace: "default",
 			Labels: map[string]string{
-				"riotkit.org/volume-syncing-operator": "true",
-				"my-pod-label":                        "test",
+				"riotkit.org/volume-syncing-controller": "true",
+				"my-pod-label":                          "test",
 			},
 		},
 	}

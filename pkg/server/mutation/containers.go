@@ -1,7 +1,7 @@
 package mutation
 
 import (
-	"github.com/riotkit-org/volume-syncing-operator/pkg/server/context"
+	"github.com/riotkit-org/volume-syncing-controller/pkg/server/context"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	"strconv"
@@ -30,7 +30,7 @@ func createContainer(isInitContainer bool, containerName string, pod *corev1.Pod
 	container := corev1.Container{
 		Name:         containerName,
 		Image:        image,
-		Command:      []string{"/usr/bin/volume-syncing-operator"},
+		Command:      []string{"/usr/bin/volume-syncing-controller"},
 		Args:         commandlineArgs,
 		WorkingDir:   "/",
 		Env:          buildEnvironment(params.Env),
@@ -46,7 +46,7 @@ func createContainer(isInitContainer bool, containerName string, pod *corev1.Pod
 		container.Lifecycle = &corev1.Lifecycle{
 			PreStop: &corev1.LifecycleHandler{
 				Exec: &corev1.ExecAction{
-					Command: []string{"/usr/bin/volume-syncing-operator", "interrupt"},
+					Command: []string{"/usr/bin/volume-syncing-controller", "interrupt"},
 				},
 			},
 		}

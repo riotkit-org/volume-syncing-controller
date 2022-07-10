@@ -2,10 +2,10 @@ package sync_to_remote
 
 import (
 	"github.com/pkg/errors"
-	"github.com/riotkit-org/volume-syncing-operator/pkg/cron"
-	"github.com/riotkit-org/volume-syncing-operator/pkg/helpers"
-	"github.com/riotkit-org/volume-syncing-operator/pkg/rclone"
-	"github.com/riotkit-org/volume-syncing-operator/pkg/signalling"
+	"github.com/riotkit-org/volume-syncing-controller/pkg/cron"
+	"github.com/riotkit-org/volume-syncing-controller/pkg/helpers"
+	"github.com/riotkit-org/volume-syncing-controller/pkg/rclone"
+	"github.com/riotkit-org/volume-syncing-controller/pkg/signalling"
 	"github.com/sirupsen/logrus"
 )
 

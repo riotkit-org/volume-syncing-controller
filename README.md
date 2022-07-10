@@ -11,8 +11,8 @@ Roadmap
 - [x] Rclone configuration using environment variables
 - [x] End-To-End encryption support
 - [x] Periodical synchronization with built-in cron-like scheduler
-- [x] `volume-syncing-operator sync-to-remote` command to synchronize local files to remote
-- [x] `volume-syncing-operator remote-to-local-sync` command to sync files back from remote to local
+- [x] `volume-syncing-controller sync-to-remote` command to synchronize local files to remote
+- [x] `volume-syncing-controller remote-to-local-sync` command to sync files back from remote to local
 - [x] Support for Kubernetes: **initContainer** to `restore` files, and **side-car** to back up files to remote
 - [x] Extra security layer preventing from accidental file deletion in comparison to plain `rclone` or `rsync` usage :100:
 - [x] Non-root container
@@ -63,10 +63,10 @@ export REMOTE_ENDPOINT=http://localhost:9000
 export REMOTE_ACL=private
 
 # synchronize to remote storage
-volume-syncing-operator sync-to-remote -s ./ -d testbucket/some-directory
+volume-syncing-controller sync-to-remote -s ./ -d testbucket/some-directory
 
 # synchronize back from remote storage to local directory
-volume-syncing-operator remote-to-local-sync -v -s testbucket -d ./.build/testing-restore
+volume-syncing-controller remote-to-local-sync -v -s testbucket -d ./.build/testing-restore
 ```
 
 **Will translate into configuration:**
@@ -92,11 +92,11 @@ rclone sync ./ remote:/testbucket/some-directory
 :watch: Scheduling periodically
 -------------------------------
 
-`volume-syncing-operator` has built-in crontab-like scheduler to optionally enable periodical syncing.
+`volume-syncing-controller` has built-in crontab-like scheduler to optionally enable periodical syncing.
 
 ```
-volume-syncing-operator --schedule '@every 1m'    # ...
-volume-syncing-operator --schedule '0 30 * * * *' # ...
+volume-syncing-controller --schedule '@every 1m'    # ...
+volume-syncing-controller --schedule '0 30 * * * *' # ...
 ```
 
 :black_circle: Safety valves
@@ -126,9 +126,9 @@ Validation of those rules can be intentionally skipped using commandline switch 
 Kubernetes example
 ------------------
 
-Operator have to be installed using Helm first. It will react for every Pod labelled with `riotkit.org/volume-syncing-operator: true` and matching CRD of `PodFilesystemSync` kind.
+Operator have to be installed using Helm first. It will react for every Pod labelled with `riotkit.org/volume-syncing-controller: true` and matching CRD of `PodFilesystemSync` kind.
 
-The `riotkit.org/volume-syncing-operator: true` is there for performance and cluster safety by limiting the scope of Admission Webhook.
+The `riotkit.org/volume-syncing-controller: true` is there for performance and cluster safety by limiting the scope of Admission Webhook.
 
 ```yaml
 ---

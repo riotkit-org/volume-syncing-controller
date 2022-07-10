@@ -19,8 +19,8 @@ limitations under the License.
 package v1alpha1
 
 import (
-	v1alpha1 "github.com/riotkit-org/volume-syncing-operator/pkg/apis/riotkit.org/v1alpha1"
-	"github.com/riotkit-org/volume-syncing-operator/pkg/client/clientset/versioned/scheme"
+	v1alpha1 "github.com/riotkit-org/volume-syncing-controller/pkg/apis/riotkit.org/v1alpha1"
+	"github.com/riotkit-org/volume-syncing-controller/pkg/client/clientset/versioned/scheme"
 	rest "k8s.io/client-go/rest"
 )
 

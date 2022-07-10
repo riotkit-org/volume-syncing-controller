@@ -2,9 +2,9 @@ package encryption_test
 
 import (
 	"context"
-	"github.com/riotkit-org/volume-syncing-operator/pkg/apis/riotkit.org/v1alpha1"
-	appContext "github.com/riotkit-org/volume-syncing-operator/pkg/server/context"
-	"github.com/riotkit-org/volume-syncing-operator/pkg/server/encryption"
+	"github.com/riotkit-org/volume-syncing-controller/pkg/apis/riotkit.org/v1alpha1"
+	appContext "github.com/riotkit-org/volume-syncing-controller/pkg/server/context"
+	"github.com/riotkit-org/volume-syncing-controller/pkg/server/encryption"
 	"github.com/stretchr/testify/assert"
 	v12 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"

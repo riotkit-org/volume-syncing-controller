@@ -1,5 +1,5 @@
 
-# work only inside namespaces that are labelled with `riotkit.org/volume-syncing-operator: "true"`
+# work only inside namespaces that are labelled with `riotkit.org/volume-syncing-controller: "true"`
 onlyLabelledNamespaces: false
 
 terminationGracePeriodSeconds: 5
@@ -7,7 +7,7 @@ podAnnotations: {}
 podLabels: {}
 env: {}
 image:
-    repository: ghcr.io/riotkit-org/volume-syncing-operator
+    repository: ghcr.io/riotkit-org/volume-syncing-controller
     #tag: latest
 
 health:
@@ -27,5 +27,5 @@ service:
 
 serviceAccount:
     create: true
-    name: volume-syncing-operator
+    name: volume-syncing-controller
     annotations: {}

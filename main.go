@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/riotkit-org/volume-syncing-operator/cmd"
-	"github.com/riotkit-org/volume-syncing-operator/pkg/helpers"
+	"github.com/riotkit-org/volume-syncing-controller/cmd"
+	"github.com/riotkit-org/volume-syncing-controller/pkg/helpers"
 	"os"
 	"strings"
 )

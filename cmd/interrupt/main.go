@@ -18,7 +18,7 @@ func NewInterruptionCommand() *cobra.Command {
 			}
 		},
 	}
-	command.Flags().StringVarP(&app.PidPath, "pid-path", "p", "/run/volume-syncing-operator.pid", "PID path")
+	command.Flags().StringVarP(&app.PidPath, "pid-path", "p", "/run/volume-syncing-controller.pid", "PID path")
 
 	return command
 }
