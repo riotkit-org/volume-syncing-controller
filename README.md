@@ -149,6 +149,10 @@ spec:
     localPath: /var/www/riotkit/wp-content
     remotePath: /example-org-bucket          # Can be also a JINJA2 template with access to Pod. Example: '/stalin-was-a-dickhead/{{ pod.ObjectMeta.Annotations["subdir"] }}'
 
+    initContainerPlacement:
+        containerReference: some-container-name # defaults to empty
+        placement: before # before, after, first or last (first & last requires the `containerReference` to be empty). Defaults to "last"
+
     syncOptions:
         # NOTICE: every next synchronization will be cancelled if previous one was not finished
         method: "scheduler"  # or "fsnotify"
@@ -217,3 +221,34 @@ When Kubernetes wants to terminate our Pod, then a `volume-syncing-controller in
 `volume-syncing-controller` main process is stopping the cron-like scheduler and invokes last synchronization to remote before exit.
 
 You may want to adjust your Pod's `terminationGracePeriodSeconds` to a value that makes sure the Kubernetes will wait longer before terminating containers.
+
+Permissions
+-----------
+
+UID and GID can be specified in the `PodFilesystemSync` resource as well as in `Pod` annotations.
+
+**PodFilesystemSync example**
+
+```yaml
+# ...
+spec:
+    syncOptions:
+        # ...
+        permissions:
+            # Can be overridden by Pod annotation `riotkit.org/volume-user-id`
+            uid: 1001
+            # Can be overridden by Pod annotation `riotkit.org/volume-group-id`
+            gid: 1001
+```
+
+**Pod example**
+
+```yaml
+# ...
+metadata:
+    annotations:
+        riotkit.org/volume-user-id: 161
+        riotkit.org/volume-group-id: 1312
+```
+
+The annotations have precedence over PodFilesystemSync resource settings.
