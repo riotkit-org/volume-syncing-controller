@@ -186,7 +186,7 @@ spec:
             forceLocal: false
 
         # Optional
-        allowedDirectories:
+        allowedDirections:
             # Decides if a side-car container should be spawned to synchronize changes periodically
             toRemote: true
             # Decides if an init container should be placed to restore files from remote on startup
