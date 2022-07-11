@@ -1,18 +1,19 @@
 
 
 webhook:
-    # work only inside namespaces that are labelled with `riotkit.org/volume-syncing-controller: "true"`
+    # -- work only inside namespaces that are labelled with `riotkit.org/volume-syncing-controller: "true"`
     onlyLabelledNamespaces: false
 
-    # if other webhook modifies the Pod, then re-execute the webhook
+    # -- if other webhook modifies the Pod, then re-execute the webhook
     reinvocationPolicy: IfNeeded
 
-    # prevent from Pod scheduling if webhook fails. This affects only labelled Pods - don't worry, it will not kill your cluster
+    # -- prevent from Pod scheduling if webhook fails. This affects only labelled Pods - don't worry, it will not kill your cluster
     failurePolicy: Fail
 
-    # typically the webhook microservice should respond within milliseconds
+    # -- typically the webhook microservice should respond within milliseconds
     timeoutSeconds: 5
 
+# -- how long it takes for the webhook serving Pod to be terminated. This controller does not perform heavy operations and can be safely restarted in short time
 terminationGracePeriodSeconds: 5
 podAnnotations: {}
 podLabels: {}
@@ -26,7 +27,7 @@ health:
         enabled: true
         attributes:
             failureThreshold: 2
-            periodSeconds: 120
+            periodSeconds: 80
     readiness:
         enabled: true
         attributes:
@@ -37,6 +38,7 @@ service:
     type: ClusterIP
 
 serviceAccount:
+    # -- allows to pick existing service account instead of creating a new one
     create: true
     name: volume-syncing-controller
     annotations: {}
