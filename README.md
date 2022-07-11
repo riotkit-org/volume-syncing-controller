@@ -261,3 +261,8 @@ metadata:
 ```
 
 The annotations have precedence over PodFilesystemSync resource settings.
+
+PodFilesystemSync deletion
+--------------------------
+
+Deletion if a definition does not recursively delete secrets that were automatically created for encryption.
