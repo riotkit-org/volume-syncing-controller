@@ -42,7 +42,7 @@ helm:
 helm-docs:
 	docker run --rm --name helm-docs  \
 		--user $(shell id -u):$(shell id -g) \
-		--mount type=bind,src="$(shell pwd)/helm/volume-syncing-controller",dst=/helm-charts \
+		--mount type=bind,src="$(shell pwd)/helm",dst=/helm-charts \
 		-w /helm-charts \
 		$(HELM_DOCS_IMAGE) \
 		helm-docs
