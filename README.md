@@ -208,7 +208,7 @@ spec:
         # to keep your secret in GIT you can try e.g. SealedSecrets or ExternalSecrets
         #REMOTE_ACCESS_KEY_ID: ...
         #REMOTE_SECRET_ACCESS_KEY: ...
-    envFromSecret:
+    envFromSecrets:
         - ref: cloud-press-secret-envs
 
     # Optional
