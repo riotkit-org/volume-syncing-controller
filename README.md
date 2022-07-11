@@ -35,6 +35,7 @@ Roadmap
 
 **v1.2:**
 - [ ] Watch synchronization progress and update status field. Pods can notify controller using webhooks with a token granted on Pod creation
+- [ ] Multiple application replicas support: One Pod can be marked as primary, the rest will have sync-to-remote on hold
 - [ ] Expose Prometheus metrics at /metrics, add configuration for Prometheus and Victoria Metrics in Helm
 
 
