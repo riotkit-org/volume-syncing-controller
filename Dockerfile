@@ -14,6 +14,10 @@ RUN mkdir -p /etc/volume-syncing-controller /mnt /run \
     && chown -R 65312:65312 /etc/volume-syncing-controller /mnt /run \
     && chmod -R 777 /etc/volume-syncing-controller /mnt /run
 
+# make sure the permissions are correct
+COPY ./.build/volume-syncing-controller /usr/bin/volume-syncing-controller
+RUN chmod +x /usr/bin/volume-syncing-controller && chown root:root /usr/bin/volume-syncing-controller && chmod 755 /usr/bin/volume-syncing-controller
+
 
 # =========================
 # Create a distroless image
@@ -23,7 +27,7 @@ FROM scratch
 # copy a versioned artifact from official released image
 COPY --from=rcloneSrc /usr/local/bin/rclone /usr/bin/rclone
 # copy already built artifact by CI
-COPY ./.build/volume-syncing-controller /usr/bin/volume-syncing-controller
+COPY --from=workspaceBuilder /usr/bin/volume-syncing-controller /usr/bin/volume-syncing-controller
 # copy a directory with prepared permissions
 COPY --from=workspaceBuilder /etc/volume-syncing-controller /etc/volume-syncing-controller
 COPY --from=workspaceBuilder /run /run
