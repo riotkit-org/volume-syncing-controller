@@ -1,6 +1,8 @@
 include examples.mk
 include testing-env.mk
 
+HELM_DOCS_IMAGE = jnorwood/helm-docs:v1.8.1
+
 .PHONY: gen-api
 gen-api:
 	./hack/update-codegen.sh
@@ -35,6 +37,15 @@ build-docker:
 helm:
 	cp README.md helm/volume-syncing-controller/
 	cd helm/volume-syncing-controller/ && helm lint ./
+
+.PHONY: helm-docs
+helm-docs:
+	docker run --rm --name helm-docs  \
+		--user $(shell id -u):$(shell id -g) \
+		--mount type=bind,src="$(shell pwd)/helm/volume-syncing-controller",dst=/helm-charts \
+		-w /helm-charts \
+		$(HELM_DOCS_IMAGE) \
+		helm-docs
 
 .PHONY: coverage
 coverage:
