@@ -171,9 +171,9 @@ spec:
         # Optional "RunAs"
         permissions:
             # Can be overridden by Pod annotation `riotkit.org/volume-user-id`
-            uid: 1001
+            uid: "1001"
             # Can be overridden by Pod annotation `riotkit.org/volume-group-id`
-            gid: 1001
+            gid: "1001"
             
         # Optional
         cleanUp:
@@ -209,7 +209,7 @@ spec:
         #REMOTE_ACCESS_KEY_ID: ...
         #REMOTE_SECRET_ACCESS_KEY: ...
     envFromSecrets:
-        - ref: cloud-press-secret-envs
+        - name: cloud-press-secret-envs
 
     # Optional
     # Will generate a key, store it in `kind: Secret` and setup End-To-End encryption

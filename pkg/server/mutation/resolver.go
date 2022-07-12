@@ -61,7 +61,7 @@ func ResolvePodFilesystemSync(a *admissionv1.AdmissionRequest) (*v1alpha1.PodFil
 		return nil, false, errors.Errorf("Cannot unmarshal, errors: %v", strictErrors)
 	}
 	if err != nil {
-		return nil, isAdded, errors.Wrapf(err, "Cannot unmarshal request object: %v", a.Object.Raw)
+		return nil, isAdded, errors.Wrapf(err, "Cannot unmarshal request object: %v", string(a.Object.Raw))
 	}
 	if p.ObjectMeta.Namespace == "" && a.Namespace != "" {
 		p.ObjectMeta.Namespace = a.Namespace
