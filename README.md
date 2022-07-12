@@ -275,3 +275,14 @@ PodFilesystemSync deletion
 --------------------------
 
 Deletion if a definition does not recursively delete secrets that were automatically created for encryption.
+
+Triggering synchronization manually
+-----------------------------------
+
+To perform a synchronization in Kubernetes when **automatic encryption** is turned on, type:
+
+```bash
+kubectl exec -n my-namespace-name my-pod-name -c volume-syncing-sidecar -it -- /usr/bin/volume-syncing-controller sync-to-remote -s /path/to/local/directory -c /etc/volume-syncing-controller/rclone.conf
+```
+
+In case, when **automatic encryption is not used**, then you additionally need to specify the remote target directory.
