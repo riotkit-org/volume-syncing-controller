@@ -50,6 +50,15 @@ There are added two containers:
 - **init-volume-restore** (initContainer - executes before application starts)
 - **volume-syncing-sidecar** (sidecar - lives together with application)
 
+Security
+--------
+
+- The images are scanned for vulnerabilities: [Open report](https://artifacthub.io/packages/helm/riotkit-org/volume-syncing-controller?modal=security-report)
+- Distroless-type image reduces surface of attack
+- No bash scripts. The container contains only `rclone` and `volume-syncing-controller` binaries
+- Built-in E2E encryption automation
+- Semantic Versioning is used to protect end users from breaking changes as much as it is possible
+
 Runtime compatibility
 ---------------------
 
@@ -188,9 +197,9 @@ spec:
 
         # Optional
         allowedDirections:
-            # Decides if a side-car container should be spawned to synchronize changes periodically
+            # Decides if a side-car container should be spawned to synchronize changes periodically TO REMOTE
             toRemote: true
-            # Decides if an init container should be placed to restore files from remote on startup
+            # Decides if an init container should be placed to restore files FROM REMOTE on startup
             fromRemote: true
             
         # Allows to decide on a case, when the directory is to be synchronized first time. 
