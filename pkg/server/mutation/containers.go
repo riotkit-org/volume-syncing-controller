@@ -178,21 +178,21 @@ func reorderInitContainer(containers []corev1.Container, containerName string, p
 		copied = append(copied, container)
 	}
 
-	if placement.Placement == "first" && foundAtIndex != 0 {
+	if placement.GetPlacement() == "first" && foundAtIndex != 0 {
 		return append([]corev1.Container{ourContainer}, copied...), nil
 
-	} else if placement.Placement == "last" && foundAtIndex+1 != len(containers) {
+	} else if placement.GetPlacement() == "last" && foundAtIndex+1 != len(containers) {
 		return append(copied, ourContainer), nil
 
-	} else if placement.Placement == "before" || placement.Placement == "after" {
+	} else if placement.GetPlacement() == "before" || placement.GetPlacement() == "after" {
 		var final []corev1.Container
 
 		for _, container := range copied {
-			if container.Name == placement.ContainerReference && placement.Placement == "before" {
+			if container.Name == placement.ContainerReference && placement.GetPlacement() == "before" {
 				final = append(final, ourContainer)
 			}
 			final = append(final, container)
-			if container.Name == placement.ContainerReference && placement.Placement == "after" {
+			if container.Name == placement.ContainerReference && placement.GetPlacement() == "after" {
 				final = append(final, ourContainer)
 			}
 		}

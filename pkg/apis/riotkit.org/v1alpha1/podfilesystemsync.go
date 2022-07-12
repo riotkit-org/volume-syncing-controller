@@ -109,14 +109,23 @@ type InitContainerPlacementSpec struct {
 	Placement          ContainerPlacement `json:"placement,omitempty"`
 }
 
+func (ic *InitContainerPlacementSpec) GetPlacement() ContainerPlacement {
+	if ic.Placement == "" {
+		return "last"
+	}
+	return ic.Placement
+}
+
 func (ic *InitContainerPlacementSpec) Validate() error {
-	if (ic.Placement == "before" || ic.Placement == "after") && ic.ContainerReference == "" {
+	p := ic.GetPlacement()
+
+	if (p == "before" || p == "after") && ic.ContainerReference == "" {
 		return errors.Errorf("Cannot place container as '%s' to unknown container, when containerReference is not specified. Specify .spec.initContainerPlacement.containerReference", ic.Placement)
 	}
-	if (ic.Placement == "last" || ic.Placement == "first") && ic.ContainerReference != "" {
-		return errors.Errorf("Cannot specify .spec.initContainerPlacement.containerReference together with '%v'", ic.Placement)
+	if (p == "last" || p == "first") && ic.ContainerReference != "" {
+		return errors.Errorf("Cannot specify .spec.initContainerPlacement.containerReference together with '%v'", ic.GetPlacement())
 	}
-	if ic.Placement != "last" && ic.Placement != "first" && ic.Placement != "before" && ic.Placement != "after" {
+	if p != "last" && p != "first" && p != "before" && p != "after" {
 		return errors.Errorf(".spec.initContainerPlacement.Placement is not one of: last, first, before, after")
 	}
 	return nil
