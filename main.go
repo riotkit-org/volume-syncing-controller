@@ -11,7 +11,7 @@ func main() {
 	command := cmd.Main()
 	args := prepareArgs(os.Args)
 
-	if args != nil && len(args) > 1 && args[1] != "serve" {
+	if args != nil && len(args) > 1 && (args[1] == "sync-to-remote" || args[1] == "remote-to-local-sync") {
 		args = args[1:]
 		command.SetArgs(args)
 	}
