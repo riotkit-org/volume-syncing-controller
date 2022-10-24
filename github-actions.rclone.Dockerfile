@@ -2,4 +2,4 @@
 # Maintained by DependaBot
 # =========================
 
-FROM rclone/rclone:1.58.1
+FROM rclone/rclone:1.60.0
