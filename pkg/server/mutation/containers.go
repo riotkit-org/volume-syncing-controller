@@ -47,11 +47,10 @@ func createContainer(isInitContainer bool, containerName string, pod *corev1.Pod
 		VolumeMounts: mergeVolumeMounts(pod.Spec.Containers, params.LocalPath),
 		// VolumeDevices:            nil,
 		ImagePullPolicy: "Always",
-
-		// lifecycle hook allows to perform a last synchronization before the Pod will be terminated
 	}
 
 	if !isInitContainer {
+		// lifecycle hook allows to perform a last synchronization before the Pod will be terminated
 		container.Lifecycle = &corev1.Lifecycle{
 			PreStop: &corev1.LifecycleHandler{
 				Exec: &corev1.ExecAction{

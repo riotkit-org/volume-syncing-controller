@@ -23,9 +23,10 @@ func main() {
 }
 
 // prepareArgs Collects all REMOTE_xxx, ENCRYPTED_xxx environment variables and changes to "-p xxx=yyy" and "-e xxx=yyy"
-//             That makes easier to use in Kubernetes and in Docker
 //
-//             e.g. REMOTE_ACCESS_KEY_ID=123456 - will convert to access_key_id=123456 under section [remote]
+//	That makes easier to use in Kubernetes and in Docker
+//
+//	e.g. REMOTE_ACCESS_KEY_ID=123456 - will convert to access_key_id=123456 under section [remote]
 func prepareArgs(args []string) []string {
 	for _, env := range os.Environ() {
 		pair := strings.SplitN(env, "=", 2)
@@ -46,7 +47,7 @@ func appendVar(args []string, prefix string, switchName string, envName string, 
 	name := strings.ToLower(namePair[1])
 
 	args = append(args, switchName)
-	args = append(args, name+" = "+value)
+	args = append(args, name+"="+value)
 
 	return args
 }
