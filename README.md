@@ -285,7 +285,8 @@ In `v1.1` there are plans to implement such logic in the Kubernetes controller, 
 PodFilesystemSync deletion
 --------------------------
 
-Deletion of a definition does not recursively delete secrets that were automatically created for encryption.
+Deletion of a definition **does not recursively delete secrets** that were automatically created for encryption.
+In the other words - deleting and restoring `PodFilesystemSync` does not have impact on the `automaticEncryption` feature.
 
 Triggering synchronization manually
 -----------------------------------
