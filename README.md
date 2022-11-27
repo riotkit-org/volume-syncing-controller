@@ -271,10 +271,21 @@ metadata:
 
 The annotations have precedence over PodFilesystemSync resource settings.
 
+Advanced usage notice
+---------------------
+
+It's up to you to use this software with caution and design a proper architecture.
+
+For multiple instances of same application you have to remember to enable synchronization only in one copy of your application, and then
+**in all other replicas** disable the synchronization **and use only the restore mode**.
+
+In `v1.1` there are plans to implement such logic in the Kubernetes controller, which may automate the process and introduce a leader election option, but still this issue will remain in bare-metal and docker usage.
+
+
 PodFilesystemSync deletion
 --------------------------
 
-Deletion if a definition does not recursively delete secrets that were automatically created for encryption.
+Deletion of a definition does not recursively delete secrets that were automatically created for encryption.
 
 Triggering synchronization manually
 -----------------------------------
