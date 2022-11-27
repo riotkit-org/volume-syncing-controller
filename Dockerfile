@@ -24,6 +24,8 @@ RUN chmod +x /usr/bin/volume-syncing-controller && chown root:root /usr/bin/volu
 # =========================
 FROM scratch
 
+# copy ca-certificates to work with some apis
+COPY --from=rcloneSrc /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 # copy a versioned artifact from official released image
 COPY --from=rcloneSrc /usr/local/bin/rclone /usr/bin/rclone
 # copy already built artifact by CI
