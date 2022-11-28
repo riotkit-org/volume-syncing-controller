@@ -7,7 +7,7 @@ FROM rclone/rclone:1.60.1 as rcloneSrc
 # ================
 # Build entrypoint
 # ================
-FROM alpine:3.16 AS workspaceBuilder
+FROM alpine:3.17 AS workspaceBuilder
 
 RUN mkdir -p /etc/volume-syncing-controller /mnt /run \
     && touch /etc/volume-syncing-controller/rclone.conf /run/volume-syncing-controller.pid \
