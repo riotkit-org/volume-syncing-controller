@@ -1,7 +1,7 @@
 # =====================================================
 # Take rclone from a selected released version artifact
 # =====================================================
-FROM rclone/rclone:1.61.1 as rcloneSrc
+FROM rclone/rclone:1.62.2 as rcloneSrc
 
 
 # ================
