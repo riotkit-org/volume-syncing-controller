@@ -8,7 +8,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.3
 	github.com/wI2L/jsondiff v0.3.0
 	k8s.io/api v0.25.4
 	k8s.io/apimachinery v0.25.4
